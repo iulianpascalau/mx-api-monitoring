@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,9 +10,11 @@ import (
 	"time"
 
 	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
+	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/mx-api-monitoring/services/agent/engine"
+	"github.com/iulianpascalau/mx-api-monitoring/services/agent/poller"
+	"github.com/iulianpascalau/mx-api-monitoring/services/agent/reporter"
 
-	//"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	//"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
@@ -22,9 +25,9 @@ const (
 	logFilePrefix        = "agent"
 	logFileLifeSpanInSec = 86400 // 24h
 	logFileLifeSpanInMB  = 1024  // 1GB
-	//configFile           = "./config.toml"
-	envFile       = "./.env"
-	envServiceKey = "SERVICE_KEY"
+	configFile           = "./config.toml"
+	envFile              = "./.env"
+	envServiceKey        = "SERVICE_KEY"
 )
 
 // appVersion should be populated at build time using ldflags
@@ -143,13 +146,25 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	//cfg, err := loadConfig(configFile)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	////TODO: remove this:
-	//_ = cfg
+	cfg, err := config.LoadConfig(configFile)
+	if err != nil {
+		return err
+	}
+
+	p := poller.NewHTTPPoller(time.Duration(cfg.QueryIntervalInSeconds) * time.Second)
+	serviceKey := envFileContents[envServiceKey]
+	r := reporter.NewHTTPReporter(cfg.ReportEndpoint, serviceKey, cfg.Name, time.Duration(cfg.ReportTimeoutInSeconds)*time.Second)
+
+	eng, err := engine.NewAgentEngine(*cfg, p, r)
+	if err != nil {
+		return err
+	}
+
+	appCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	timeToCall := time.Duration(cfg.QueryIntervalInSeconds) * time.Second
+	commonGo.CronJobStarter(appCtx, eng.Process, timeToCall)
 
 	log.Info("Agent started")
 
@@ -159,16 +174,7 @@ func run(ctx *cli.Context) error {
 	<-sigs
 
 	log.Info("Application closing, calling Close on all subcomponents...")
+	cancel()
 
 	return nil
 }
-
-//func loadConfig(filepath string) (config.AgentConfig, error) {
-//	cfg := config.AgentConfig{}
-//	err := core.LoadTomlFile(&cfg, filepath)
-//	if err != nil {
-//		return config.AgentConfig{}, err
-//	}
-//
-//	return cfg, nil
-//}

@@ -1,8 +1,10 @@
 package commonGo
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -53,4 +55,23 @@ func ReadEnvFile(envFile string, m map[string]string) error {
 	}
 
 	return nil
+}
+
+// CronJobStarter is able to start a go routine that periodically calls the provided handler. The time between calls is
+// provided as timeToCall
+func CronJobStarter(ctx context.Context, handler func(ctx context.Context), timeToCall time.Duration) {
+	go func() {
+		timer := time.NewTimer(timeToCall)
+		defer timer.Stop()
+
+		for {
+			select {
+			case <-timer.C:
+				handler(ctx)
+				timer.Reset(timeToCall)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }
