@@ -19,10 +19,10 @@ type EndpointConfig struct {
 // Config maps to the config.toml file for the monitor agent
 type Config struct {
 	Name                   string           `toml:"Name"`
-	QueryIntervalInSeconds int              `toml:"QueryIntervalInSeconds"`
+	QueryIntervalInSeconds uint32           `toml:"QueryIntervalInSeconds"`
 	ReportEndpoint         string           `toml:"ReportEndpoint"`
-	ServiceApiKey          string           `toml:"ServiceApiKey"`
-	Endpoints              []EndpointConfig `toml:"endpoints"`
+	ReportTimeoutInSeconds uint32           `toml:"ReportTimeoutInSeconds"`
+	Endpoints              []EndpointConfig `toml:"Endpoints"`
 }
 
 // LoadConfig parses a TOML file into the Config struct
