@@ -22,15 +22,16 @@ import (
 var log = logger.GetOrCreate("api")
 
 type Server struct {
-	router     *gin.Engine
-	httpServer *http.Server
-	storage    Storage
-	serviceKey string
-	username   string
-	password   string
-	listenAddr string
-	jwtSecret  []byte
-	wg         sync.WaitGroup
+	router         *gin.Engine
+	httpServer     *http.Server
+	storage        Storage
+	serviceKey     string
+	username       string
+	password       string
+	listenAddr     string
+	jwtSecret      []byte
+	generalHandler func(http.Handler) http.Handler
+	wg             sync.WaitGroup
 }
 
 // MetricReportPayload represents the incoming JSON body on /api/report
@@ -44,17 +45,21 @@ type MetricReportPayload struct {
 
 // ArgsWebServer defines the web server arguments
 type ArgsWebServer struct {
-	ServiceKeyApi string
-	AuthUsername  string
-	AuthPassword  string
-	ListenAddress string
-	Storage       Storage
+	ServiceKeyApi  string
+	AuthUsername   string
+	AuthPassword   string
+	ListenAddress  string
+	Storage        Storage
+	GeneralHandler func(http.Handler) http.Handler
 }
 
 // NewServer initializes the Gin engine and mounts all routes
 func NewServer(args ArgsWebServer) (*Server, error) {
 	if check.IfNil(args.Storage) {
 		return nil, errors.New("storage is required")
+	}
+	if args.GeneralHandler == nil {
+		return nil, errors.New("nil http handler")
 	}
 
 	// Derive JWT secret from ServiceApiKey + random salt
@@ -73,13 +78,14 @@ func NewServer(args ArgsWebServer) (*Server, error) {
 	router.Use(gin.Recovery())
 
 	s := &Server{
-		router:     router,
-		storage:    args.Storage,
-		serviceKey: args.ServiceKeyApi,
-		username:   args.AuthUsername,
-		password:   args.AuthPassword,
-		listenAddr: args.ListenAddress,
-		jwtSecret:  jwtSecret,
+		router:         router,
+		storage:        args.Storage,
+		serviceKey:     args.ServiceKeyApi,
+		username:       args.AuthUsername,
+		password:       args.AuthPassword,
+		listenAddr:     args.ListenAddress,
+		generalHandler: args.GeneralHandler,
+		jwtSecret:      jwtSecret,
 	}
 
 	s.setupRoutes()
@@ -107,9 +113,11 @@ func (s *Server) setupRoutes() {
 
 // Start listens and serves connections
 func (s *Server) Start() {
+	handler := s.generalHandler(s.router)
+
 	s.httpServer = &http.Server{
 		Addr:    s.listenAddr,
-		Handler: s.router,
+		Handler: handler,
 	}
 
 	s.wg.Add(1)

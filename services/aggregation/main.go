@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/common"
+	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
@@ -38,7 +38,7 @@ const (
 //
 //	go build -v -ldflags="-X main.appVersion=$(git describe --all | cut -c7-32)
 var appVersion = "undefined"
-var fileLogging common.FileLoggingHandler
+var fileLogging commonGo.FileLoggingHandler
 
 var (
 	proxyHelpTemplate = `NAME:
@@ -129,7 +129,7 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	fileLogging, err = common.AttachFileLogger(log, defaultLogsPath, logFilePrefix, saveLogFile, workingDir)
+	fileLogging, err = commonGo.AttachFileLogger(log, defaultLogsPath, logFilePrefix, saveLogFile, workingDir)
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func run(ctx *cli.Context) error {
 
 	log.Info("Starting aggregation service", "version", appVersion, "pid", os.Getpid())
 
-	err = common.ReadEnvFile(envFile, envFileContents)
+	err = commonGo.ReadEnvFile(envFile, envFileContents)
 	if err != nil {
 		return err
 	}
@@ -162,11 +162,12 @@ func run(ctx *cli.Context) error {
 	}
 
 	serverArgs := api.ArgsWebServer{
-		ServiceKeyApi: envFileContents[envServiceKey],
-		AuthUsername:  envFileContents[envAuthUser],
-		AuthPassword:  envFileContents[envAuthPassword],
-		ListenAddress: cfg.ListenAddress,
-		Storage:       store,
+		ServiceKeyApi:  envFileContents[envServiceKey],
+		AuthUsername:   envFileContents[envAuthUser],
+		AuthPassword:   envFileContents[envAuthPassword],
+		ListenAddress:  fmt.Sprintf(":%d", cfg.Port),
+		Storage:        store,
+		GeneralHandler: api.CORSMiddleware,
 	}
 
 	server, err := api.NewServer(serverArgs)
