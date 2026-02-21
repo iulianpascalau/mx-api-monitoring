@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path"
 	"runtime"
 	"syscall"
 	"time"
 
 	"github.com/iulianpascalau/mx-api-monitoring/common"
+	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
-	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
@@ -18,12 +20,16 @@ import (
 
 const (
 	defaultLogsPath      = "logs"
+	defaultDataPath      = "data"
+	dbFile               = "sqlite.db"
 	logFilePrefix        = "agent"
 	logFileLifeSpanInSec = 86400 // 24h
 	logFileLifeSpanInMB  = 1024  // 1GB
 	configFile           = "./config.toml"
 	envFile              = "./.env"
 	envServiceKey        = "SERVICE_KEY"
+	envAuthUser          = "AUTH_USER"
+	envAuthPassword      = "AUTH_PASSWORD"
 )
 
 // appVersion should be populated at build time using ldflags
@@ -75,7 +81,9 @@ VERSION:
 	}
 
 	envFileContents = map[string]string{
-		envServiceKey: "",
+		envServiceKey:   "",
+		envAuthUser:     "",
+		envAuthPassword: "",
 	}
 )
 
@@ -142,13 +150,31 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	cfg, err := loadConfig(configFile)
+	cfg, err := config.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 
-	//TODO: remove this:
-	_ = cfg
+	sqlitePath := path.Join(workingDir, defaultDataPath, dbFile)
+	store, err := storage.NewSQLiteStorage(sqlitePath, cfg.RetentionSeconds)
+	if err != nil {
+		return err
+	}
+
+	serverArgs := api.ArgsWebServer{
+		ServiceKeyApi: envFileContents[envServiceKey],
+		AuthUsername:  envFileContents[envAuthUser],
+		AuthPassword:  envFileContents[envAuthPassword],
+		ListenAddress: cfg.ListenAddress,
+		Storage:       store,
+	}
+
+	server, err := api.NewServer(serverArgs)
+	if err != nil {
+		return err
+	}
+
+	server.Start()
 
 	log.Info("Aggregation service started")
 
@@ -158,16 +184,8 @@ func run(ctx *cli.Context) error {
 	<-sigs
 
 	log.Info("Application closing, calling Close on all subcomponents...")
+	_ = server.Close()
+	_ = store.Close()
 
 	return nil
-}
-
-func loadConfig(filepath string) (config.AggregationConfig, error) {
-	cfg := config.AggregationConfig{}
-	err := core.LoadTomlFile(&cfg, filepath)
-	if err != nil {
-		return config.AggregationConfig{}, err
-	}
-
-	return cfg, nil
 }
