@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
-	commonApi "github.com/iulianpascalau/mx-api-monitoring/commonGo/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
@@ -168,7 +167,7 @@ func run(ctx *cli.Context) error {
 		AuthPassword:   envFileContents[envAuthPassword],
 		ListenAddress:  fmt.Sprintf(":%d", cfg.Port),
 		Storage:        store,
-		GeneralHandler: commonApi.CORSMiddleware,
+		GeneralHandler: api.CORSMiddleware,
 	}
 
 	server, err := api.NewServer(serverArgs)

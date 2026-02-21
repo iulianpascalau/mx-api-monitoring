@@ -8,9 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/common"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
+
+	//"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	//"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
@@ -21,9 +22,9 @@ const (
 	logFilePrefix        = "agent"
 	logFileLifeSpanInSec = 86400 // 24h
 	logFileLifeSpanInMB  = 1024  // 1GB
-	configFile           = "./config.toml"
-	envFile              = "./.env"
-	envServiceKey        = "SERVICE_KEY"
+	//configFile           = "./config.toml"
+	envFile       = "./.env"
+	envServiceKey = "SERVICE_KEY"
 )
 
 // appVersion should be populated at build time using ldflags
@@ -32,7 +33,7 @@ const (
 //
 //	go build -v -ldflags="-X main.appVersion=$(git describe --all | cut -c7-32)
 var appVersion = "undefined"
-var fileLogging common.FileLoggingHandler
+var fileLogging commonGo.FileLoggingHandler
 
 var (
 	proxyHelpTemplate = `NAME:
@@ -121,7 +122,7 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	fileLogging, err = common.AttachFileLogger(log, defaultLogsPath, logFilePrefix, saveLogFile, workingDir)
+	fileLogging, err = commonGo.AttachFileLogger(log, defaultLogsPath, logFilePrefix, saveLogFile, workingDir)
 	if err != nil {
 		return err
 	}
@@ -137,18 +138,18 @@ func run(ctx *cli.Context) error {
 
 	log.Info("Starting agent", "version", appVersion, "pid", os.Getpid())
 
-	err = common.ReadEnvFile(envFile, envFileContents)
+	err = commonGo.ReadEnvFile(envFile, envFileContents)
 	if err != nil {
 		return err
 	}
 
-	cfg, err := loadConfig(configFile)
-	if err != nil {
-		return err
-	}
-
-	//TODO: remove this:
-	_ = cfg
+	//cfg, err := loadConfig(configFile)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	////TODO: remove this:
+	//_ = cfg
 
 	log.Info("Agent started")
 
@@ -162,12 +163,12 @@ func run(ctx *cli.Context) error {
 	return nil
 }
 
-func loadConfig(filepath string) (config.AgentConfig, error) {
-	cfg := config.AgentConfig{}
-	err := core.LoadTomlFile(&cfg, filepath)
-	if err != nil {
-		return config.AgentConfig{}, err
-	}
-
-	return cfg, nil
-}
+//func loadConfig(filepath string) (config.AgentConfig, error) {
+//	cfg := config.AgentConfig{}
+//	err := core.LoadTomlFile(&cfg, filepath)
+//	if err != nil {
+//		return config.AgentConfig{}, err
+//	}
+//
+//	return cfg, nil
+//}
