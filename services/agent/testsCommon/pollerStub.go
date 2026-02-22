@@ -1,4 +1,4 @@
-package testCommon
+package testsCommon
 
 import (
 	"context"

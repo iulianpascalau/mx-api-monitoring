@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
+	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/factory"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
@@ -156,26 +155,19 @@ func run(ctx *cli.Context) error {
 	}
 
 	sqlitePath := path.Join(workingDir, defaultDataPath, dbFile)
-	store, err := storage.NewSQLiteStorage(sqlitePath, cfg.RetentionSeconds)
+
+	components, err := factory.NewComponentsHandler(
+		sqlitePath,
+		envFileContents[envServiceKey],
+		envFileContents[envAuthUser],
+		envFileContents[envAuthPassword],
+		*cfg,
+	)
 	if err != nil {
 		return err
 	}
 
-	serverArgs := api.ArgsWebServer{
-		ServiceKeyApi:  envFileContents[envServiceKey],
-		AuthUsername:   envFileContents[envAuthUser],
-		AuthPassword:   envFileContents[envAuthPassword],
-		ListenAddress:  fmt.Sprintf(":%d", cfg.Port),
-		Storage:        store,
-		GeneralHandler: api.CORSMiddleware,
-	}
-
-	server, err := api.NewServer(serverArgs)
-	if err != nil {
-		return err
-	}
-
-	server.Start()
+	components.Start()
 
 	log.Info("Aggregation service started")
 
@@ -185,8 +177,8 @@ func run(ctx *cli.Context) error {
 	<-sigs
 
 	log.Info("Application closing, calling Close on all subcomponents...")
-	_ = server.Close()
-	_ = store.Close()
+
+	components.Close()
 
 	return nil
 }
