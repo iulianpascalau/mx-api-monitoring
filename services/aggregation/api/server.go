@@ -21,7 +21,7 @@ import (
 
 var log = logger.GetOrCreate("api")
 
-type Server struct {
+type server struct {
 	router         *gin.Engine
 	httpServer     *http.Server
 	storage        Storage
@@ -54,7 +54,7 @@ type ArgsWebServer struct {
 }
 
 // NewServer initializes the Gin engine and mounts all routes
-func NewServer(args ArgsWebServer) (*Server, error) {
+func NewServer(args ArgsWebServer) (*server, error) {
 	if check.IfNil(args.Storage) {
 		return nil, errors.New("storage is required")
 	}
@@ -77,7 +77,7 @@ func NewServer(args ArgsWebServer) (*Server, error) {
 
 	router.Use(gin.Recovery())
 
-	s := &Server{
+	s := &server{
 		router:         router,
 		storage:        args.Storage,
 		serviceKey:     args.ServiceKeyApi,
@@ -92,7 +92,7 @@ func NewServer(args ArgsWebServer) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) setupRoutes() {
+func (s *server) setupRoutes() {
 	api := s.router.Group("/api")
 
 	// Agent reporting endpoint
@@ -112,7 +112,7 @@ func (s *Server) setupRoutes() {
 }
 
 // Start listens and serves connections
-func (s *Server) Start() {
+func (s *server) Start() {
 	handler := s.generalHandler(s.router)
 
 	s.httpServer = &http.Server{
@@ -133,7 +133,7 @@ func (s *Server) Start() {
 }
 
 // Close gracefully stops the server
-func (s *Server) Close() error {
+func (s *server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -148,7 +148,7 @@ func (s *Server) Close() error {
 
 // --- Middlewares ---
 
-func (s *Server) authAPIKey() gin.HandlerFunc {
+func (s *server) authAPIKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.GetHeader("X-Api-Key")
 		if key != s.serviceKey {
@@ -161,7 +161,7 @@ func (s *Server) authAPIKey() gin.HandlerFunc {
 }
 
 // VERY basic JWT implementation for frontend session based on HS256
-func (s *Server) authJWT() gin.HandlerFunc {
+func (s *server) authJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -218,7 +218,7 @@ func (s *Server) authJWT() gin.HandlerFunc {
 
 // --- Handlers ---
 
-func (s *Server) handleReport(c *gin.Context) {
+func (s *server) handleReport(c *gin.Context) {
 	var payload MetricReportPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
@@ -242,7 +242,7 @@ func (s *Server) handleReport(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
-func (s *Server) handleLogin(c *gin.Context) {
+func (s *server) handleLogin(c *gin.Context) {
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -271,7 +271,7 @@ func (s *Server) handleLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (s *Server) handleGetMetrics(c *gin.Context) {
+func (s *server) handleGetMetrics(c *gin.Context) {
 	results, err := s.storage.GetLatestMetrics(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -303,7 +303,7 @@ func (s *Server) handleGetMetrics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"metrics": out})
 }
 
-func (s *Server) handleGetMetricHistory(c *gin.Context) {
+func (s *server) handleGetMetricHistory(c *gin.Context) {
 	name := c.Param("name")
 	hist, err := s.storage.GetMetricHistory(c.Request.Context(), name)
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *Server) handleGetMetricHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, hist)
 }
 
-func (s *Server) handleDeleteMetric(c *gin.Context) {
+func (s *server) handleDeleteMetric(c *gin.Context) {
 	name := c.Param("name")
 	err := s.storage.DeleteMetric(c.Request.Context(), name)
 	if err != nil {

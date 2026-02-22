@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -11,10 +10,7 @@ import (
 
 	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
 	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/engine"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/poller"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/reporter"
-
+	"github.com/iulianpascalau/mx-api-monitoring/services/agent/factory"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
@@ -151,20 +147,13 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	p := poller.NewHTTPPoller(time.Duration(cfg.QueryIntervalInSeconds) * time.Second)
 	serviceKey := envFileContents[envServiceKey]
-	r := reporter.NewHTTPReporter(cfg.ReportEndpoint, serviceKey, cfg.Name, time.Duration(cfg.ReportTimeoutInSeconds)*time.Second)
-
-	eng, err := engine.NewAgentEngine(*cfg, p, r)
+	components, err := factory.NewComponentsHandler(serviceKey, *cfg)
 	if err != nil {
 		return err
 	}
 
-	appCtx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	timeToCall := time.Duration(cfg.QueryIntervalInSeconds) * time.Second
-	commonGo.CronJobStarter(appCtx, eng.Process, timeToCall)
+	components.Start()
 
 	log.Info("Agent started")
 
@@ -174,7 +163,7 @@ func run(ctx *cli.Context) error {
 	<-sigs
 
 	log.Info("Application closing, calling Close on all subcomponents...")
-	cancel()
+	components.Close()
 
 	return nil
 }
