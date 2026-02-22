@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -25,6 +27,11 @@ type sqliteStorage struct {
 
 // NewSQLiteStorage creates the database, schema, and starts the retention cleaner
 func NewSQLiteStorage(dbPath string, retentionSeconds int) (*sqliteStorage, error) {
+	err := prepareDirectories(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create initial empty DB file: %w", err)
+	}
+
 	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -46,6 +53,10 @@ func NewSQLiteStorage(dbPath string, retentionSeconds int) (*sqliteStorage, erro
 	s.startRetentionCleaner(ctx)
 
 	return s, nil
+}
+
+func prepareDirectories(dbPath string) error {
+	return os.MkdirAll(filepath.Dir(dbPath), os.ModePerm)
 }
 
 // CleanRetainedMetrics executes the retention cleanup query synchronously.
@@ -238,6 +249,8 @@ func (s *sqliteStorage) startRetentionCleaner(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				log.Debug("running retention cleanup")
+
 				err := s.cleanRetainedMetrics(ctx)
 				if err != nil {
 					log.Warn("failed to cleanup retained metrics", "error", err)

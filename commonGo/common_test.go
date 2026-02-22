@@ -23,9 +23,9 @@ func TestCronJob(t *testing.T) {
 
 		CronJobStarter(ctx, handler, time.Millisecond*100)
 
-		time.Sleep(time.Millisecond * 350) // 350ms => 3 calls => counter should be 3
+		time.Sleep(time.Millisecond * 350) // 350ms => 3 + 1 initial calls => counter should be 4
 
-		assert.Equal(t, uint64(3), atomic.LoadUint64(&counter))
+		assert.Equal(t, uint64(4), atomic.LoadUint64(&counter))
 	})
 	t.Run("context done should stop", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -37,11 +37,11 @@ func TestCronJob(t *testing.T) {
 
 		CronJobStarter(ctx, handler, time.Millisecond*100)
 
-		time.Sleep(time.Millisecond * 350) // 35oms => 3 calls => counter should be 3
+		time.Sleep(time.Millisecond * 350) // 35oms => 3 +  1 initial calls => counter should be 4
 		cancel()
 
 		time.Sleep(time.Millisecond * 350) // wait another 350ms just to be safe
 
-		assert.Equal(t, uint64(3), atomic.LoadUint64(&counter))
+		assert.Equal(t, uint64(4), atomic.LoadUint64(&counter))
 	})
 }

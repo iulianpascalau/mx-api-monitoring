@@ -6,20 +6,20 @@ ReportTimeoutInSeconds = 10
 [[Endpoints]]
     Name = "VM1.Node1.nonce"
     URL = "http://127.0.0.1:8080/node/status"
-    Value = "erd_nonce"
+    Value = "data.metrics.erd_nonce"
     Type = "uint64"
     NumAggregation = 100
 
 [[Endpoints]]
     Name = "VM1.Node2.nonce"
     URL = "http://127.0.0.1:8081/node/status"
-    Value = "erd_nonce"
+    Value = "data.metrics.erd_nonce"
     Type = "uint64"
     NumAggregation = 100
 
 [[Endpoints]]
     Name = "VM1.Node1.epoch"
     URL = "http://127.0.0.1:8080/network/status"
-    Value = "erd_epoch_number"
+    Value = "data.status.erd_epoch_number"
     Type = "uint64"
     NumAggregation = 1

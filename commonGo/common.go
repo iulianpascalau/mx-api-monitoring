@@ -64,6 +64,8 @@ func CronJobStarter(ctx context.Context, handler func(ctx context.Context), time
 		timer := time.NewTimer(timeToCall)
 		defer timer.Stop()
 
+		handler(ctx)
+
 		for {
 			select {
 			case <-timer.C:
