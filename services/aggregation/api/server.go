@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -120,16 +121,28 @@ func (s *server) Start() {
 		Handler: handler,
 	}
 
+	ln, err := net.Listen("tcp", s.listenAddr)
+	if err != nil {
+		log.Error("failed to listen", "error", err)
+		return
+	}
+	s.listenAddr = ln.Addr().String()
+
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
 		log.Info("starting HTTP server", "address", s.listenAddr)
 
-		err := s.httpServer.ListenAndServe()
-		if err != nil && errors.Is(err, http.ErrServerClosed) {
+		err := s.httpServer.Serve(ln)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error("http server failed", "error", err)
 		}
 	}()
+}
+
+// Address returns the actual listen address
+func (s *server) Address() string {
+	return s.listenAddr
 }
 
 // Close gracefully stops the server

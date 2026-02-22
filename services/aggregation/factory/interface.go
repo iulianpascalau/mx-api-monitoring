@@ -4,4 +4,5 @@ package factory
 type Server interface {
 	Start()
 	Close() error
+	Address() string
 }
