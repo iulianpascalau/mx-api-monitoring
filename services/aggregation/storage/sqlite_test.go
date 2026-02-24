@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/common"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	"github.com/stretchr/testify/require"
 )
 

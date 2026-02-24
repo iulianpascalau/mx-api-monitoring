@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/config"
 	"github.com/stretchr/testify/assert"
 )
 

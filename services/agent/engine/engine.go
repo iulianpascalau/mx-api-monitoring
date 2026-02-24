@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
