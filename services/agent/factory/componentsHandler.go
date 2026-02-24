@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/engine"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/poller"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/reporter"
+	"github.com/iulianpascalau/api-monitoring/commonGo"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/engine"
+	"github.com/iulianpascalau/api-monitoring/services/agent/poller"
+	"github.com/iulianpascalau/api-monitoring/services/agent/reporter"
 )
 
 type componentsHandler struct {

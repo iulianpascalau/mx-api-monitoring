@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/common"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/common"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/tidwall/gjson"
 )

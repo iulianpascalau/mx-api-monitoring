@@ -3,8 +3,8 @@ package engine
 import (
 	"context"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/common"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/common"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
 )
 
 // Poller defines the interface for fetching values from local endpoints

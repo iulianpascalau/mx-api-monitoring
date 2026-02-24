@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/api"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/config"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/storage"
 )
 
 type componentsHandler struct {

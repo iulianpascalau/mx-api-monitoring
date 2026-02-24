@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/commonGo"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/factory"
+	"github.com/iulianpascalau/api-monitoring/commonGo"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/config"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/factory"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"

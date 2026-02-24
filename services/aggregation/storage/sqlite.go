@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/common"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	_ "github.com/mattn/go-sqlite3"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )

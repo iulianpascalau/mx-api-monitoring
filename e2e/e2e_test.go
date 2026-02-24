@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	agentCfg "github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	agentFactory "github.com/iulianpascalau/mx-api-monitoring/services/agent/factory"
-	aggCfg "github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
-	aggFactory "github.com/iulianpascalau/mx-api-monitoring/services/aggregation/factory"
+	agentCfg "github.com/iulianpascalau/api-monitoring/services/agent/config"
+	agentFactory "github.com/iulianpascalau/api-monitoring/services/agent/factory"
+	aggCfg "github.com/iulianpascalau/api-monitoring/services/aggregation/config"
+	aggFactory "github.com/iulianpascalau/api-monitoring/services/aggregation/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/require"
 )

@@ -1,6 +1,6 @@
 package common
 
-import "github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+import "github.com/iulianpascalau/api-monitoring/services/agent/config"
 
 // MetricResult holds the extracted value for a specific endpoint configuration
 type MetricResult struct {
