@@ -6,7 +6,7 @@ PROJECT_DIR="/home/${USER}/api-monitoring"
 AGGREGATION_SERVICE="api-monitoring-aggregation"
 FRONTEND_DIR="${PROJECT_DIR}/frontend"
 # Load common functions
-source ./common.sh
+source "$(dirname "$0")/common.sh"
 
 # Check argument
 BRANCH=$1

@@ -104,10 +104,24 @@ ensure_node_yarn_installed() {
         echo "Node version $CURRENT_NODE_VER matches required version."
     fi
 
+    # Find the current node directory to export bin path
+    ARCH=$(uname -m)
+    if [ "$ARCH" == "x86_64" ]; then NODE_ARCH="x64"; elif [ "$ARCH" == "aarch64" ]; then NODE_ARCH="arm64"; fi
+    NODE_BIN_DIR=$(ls -d /usr/local/lib/nodejs/node-v${NODE_LATEST_TESTED}-linux-${NODE_ARCH}/bin 2>/dev/null || echo "")
+    
+    if [ -n "$NODE_BIN_DIR" ]; then
+        export PATH="$NODE_BIN_DIR:$PATH"
+    fi
+
     # Ensure Yarn is installed
     if ! command -v yarn &> /dev/null; then
         echo "Yarn not found. Installing globally via npm..."
-        sudo npm install -g yarn
+        sudo /usr/local/bin/npm install -g yarn
+        
+        # After installation, we might need to symlink it if not already in /usr/local/bin
+        if [ -f "${NODE_BIN_DIR}/yarn" ] && [ ! -f "/usr/local/bin/yarn" ]; then
+            sudo ln -sf "${NODE_BIN_DIR}/yarn" /usr/local/bin/yarn
+        fi
     else
         echo "Yarn $(yarn -v) found."
     fi
