@@ -43,3 +43,4 @@ sudo systemctl start ${APP_NAME}
 # Show status
 echo "Service status:"
 sudo systemctl status ${APP_NAME} --no-pager
+
