@@ -11,12 +11,12 @@ func TestConfig(t *testing.T) {
 	t.Parallel()
 
 	testString := `
-Port = 8080
+ListenAddress = "0.0.0.0:8080"
 RetentionSeconds =3600
 `
 
 	expectedCfg := Config{
-		Port:             8080,
+		ListenAddress:    "0.0.0.0:8080",
 		RetentionSeconds: 3600,
 	}
 

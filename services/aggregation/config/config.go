@@ -9,8 +9,8 @@ import (
 
 // Config maps to the config.toml file for the aggregation service
 type Config struct {
-	Port             int `toml:"Port"`
-	RetentionSeconds int `toml:"RetentionSeconds"`
+	ListenAddress    string `toml:"ListenAddress"`
+	RetentionSeconds int    `toml:"RetentionSeconds"`
 }
 
 // LoadConfig parses a TOML file into the Config struct
