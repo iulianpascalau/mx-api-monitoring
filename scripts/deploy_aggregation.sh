@@ -60,8 +60,8 @@ ensure_go_installed
 GO_CMD="go"
 
 cd ./services/aggregation
-# Build the aggregation binary
-$GO_CMD build -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty)" -o aggregation main.go
+# Build the aggregation binary with limited parallelism to avoid OOM/hangs on small VMs
+$GO_CMD build -p 1 -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty)" -o aggregation main.go
 if [ $? -ne 0 ]; then
     echo "Aggregation binary build failed!"
     exit 1
