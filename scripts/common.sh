@@ -47,3 +47,68 @@ ensure_go_installed() {
         fi
     fi
 }
+
+# Function to ensure the correct Node and Yarn versions are installed
+ensure_node_yarn_installed() {
+    # Load variables if not already loaded (and if the file exists)
+    if [ -f ./scripts/variables.cfg ]; then
+        source ./scripts/variables.cfg
+    fi
+
+    if [ -z "$NODE_LATEST_TESTED" ]; then
+        echo "NODE_LATEST_TESTED not set, defaulting to 22.12.0"
+        NODE_LATEST_TESTED="22.12.0"
+    fi
+
+    get_node_ver() {
+        if command -v node &> /dev/null; then
+            node -v | sed 's/^v//'
+        else
+            echo "none"
+        fi
+    }
+
+    CURRENT_NODE_VER=$(get_node_ver)
+
+    if [[ "$CURRENT_NODE_VER" != "$NODE_LATEST_TESTED"* ]]; then
+        echo "Node version mismatch (Current: $CURRENT_NODE_VER, Required: $NODE_LATEST_TESTED). Installing..."
+        
+        ARCH=$(uname -m)
+        if [ "$ARCH" == "x86_64" ]; then
+            NODE_ARCH="x64"
+        elif [ "$ARCH" == "aarch64" ]; then
+            NODE_ARCH="arm64"
+        else
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+        fi
+
+        wget -q "https://nodejs.org/dist/v${NODE_LATEST_TESTED}/node-v${NODE_LATEST_TESTED}-linux-${NODE_ARCH}.tar.xz" -O /tmp/node.tar.xz
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to download Node $NODE_LATEST_TESTED"
+            exit 1
+        fi
+        
+        sudo mkdir -p /usr/local/lib/nodejs
+        sudo tar -xJvf /tmp/node.tar.xz -C /usr/local/lib/nodejs
+        NODE_DIR=$(ls -d /usr/local/lib/nodejs/node-v${NODE_LATEST_TESTED}-linux-${NODE_ARCH})
+        
+        # Link binaries to /usr/local/bin
+        sudo ln -sf "${NODE_DIR}/bin/node" /usr/local/bin/node
+        sudo ln -sf "${NODE_DIR}/bin/npm" /usr/local/bin/npm
+        sudo ln -sf "${NODE_DIR}/bin/npx" /usr/local/bin/npx
+        
+        rm /tmp/node.tar.xz
+        echo "Node $NODE_LATEST_TESTED installed."
+    else
+        echo "Node version $CURRENT_NODE_VER matches required version."
+    fi
+
+    # Ensure Yarn is installed
+    if ! command -v yarn &> /dev/null; then
+        echo "Yarn not found. Installing globally via npm..."
+        sudo npm install -g yarn
+    else
+        echo "Yarn $(yarn -v) found."
+    fi
+}

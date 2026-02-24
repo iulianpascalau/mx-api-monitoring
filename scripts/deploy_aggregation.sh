@@ -54,8 +54,9 @@ echo "Step 4: Recompiling Backend..."
 # Load common functions
 source ./scripts/common.sh
 
-# Ensure Go is installed
+# Ensure Go and Node are installed
 ensure_go_installed
+ensure_node_yarn_installed
 GO_CMD="go"
 
 cd ./services/aggregation
