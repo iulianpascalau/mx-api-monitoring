@@ -37,6 +37,7 @@ git pull origin "$BRANCH"
 
 # 3. Build Frontend
 echo "Step 3: Building Frontend..."
+ensure_node_yarn_installed
 if [ -d "$FRONTEND_DIR" ]; then
     cd "$FRONTEND_DIR"
     # Ensure dependencies are installed
@@ -56,7 +57,6 @@ source ./scripts/common.sh
 
 # Ensure Go and Node are installed
 ensure_go_installed
-ensure_node_yarn_installed
 GO_CMD="go"
 
 cd ./services/aggregation
