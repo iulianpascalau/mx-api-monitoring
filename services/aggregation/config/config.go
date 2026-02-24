@@ -10,6 +10,7 @@ import (
 // Config maps to the config.toml file for the aggregation service
 type Config struct {
 	ListenAddress    string `toml:"ListenAddress"`
+	StaticDir        string `toml:"StaticDir"`
 	RetentionSeconds int    `toml:"RetentionSeconds"`
 }
 

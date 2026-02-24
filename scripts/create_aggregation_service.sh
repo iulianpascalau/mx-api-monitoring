@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Configuration
-APP_NAME="api-monitoring-agent"
-APP_DIR="/home/${USER}/api-monitoring/services/agent"
-EXEC_PATH="${APP_DIR}/agent"
+APP_NAME="api-monitoring-aggregation"
+APP_DIR="/home/${USER}/api-monitoring/services/aggregation"
+EXEC_PATH="${APP_DIR}/aggregation"
 
 # Create the service file content
 SERVICE_CONTENT="[Unit]
-Description=API monitoring Agent Go service
+Description=API monitoring Aggregation Go service
 After=network-online.target
 
 [Service]

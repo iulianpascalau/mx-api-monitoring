@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ type server struct {
 	username       string
 	password       string
 	listenAddr     string
+	staticDir      string
 	jwtSecret      []byte
 	generalHandler func(http.Handler) http.Handler
 	wg             sync.WaitGroup
@@ -50,6 +52,7 @@ type ArgsWebServer struct {
 	AuthUsername   string
 	AuthPassword   string
 	ListenAddress  string
+	StaticDir      string
 	Storage        Storage
 	GeneralHandler func(http.Handler) http.Handler
 }
@@ -85,6 +88,7 @@ func NewServer(args ArgsWebServer) (*server, error) {
 		username:       args.AuthUsername,
 		password:       args.AuthPassword,
 		listenAddr:     args.ListenAddress,
+		staticDir:      args.StaticDir,
 		generalHandler: args.GeneralHandler,
 		jwtSecret:      jwtSecret,
 	}
@@ -109,6 +113,25 @@ func (s *server) setupRoutes() {
 		protected.GET("/metrics", s.handleGetMetrics)
 		protected.GET("/metrics/:name/history", s.handleGetMetricHistory)
 		protected.DELETE("/metrics/:name", s.handleDeleteMetric)
+	}
+
+	// Serve static files from the frontend build if configured
+	if s.staticDir != "" {
+		log.Info("serving static files", "dir", s.staticDir)
+		s.router.Static("/static", path.Join(s.staticDir, "static"))
+		s.router.StaticFile("/favicon.ico", path.Join(s.staticDir, "favicon.ico"))
+		// Add other static assets if necessary
+
+		// NoRoute for SPA fallback
+		s.router.NoRoute(func(c *gin.Context) {
+			// If request is for an /api route that doesn't exist, return 404
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				c.JSON(http.StatusNotFound, gin.H{"error": "api route not found"})
+				return
+			}
+			// Otherwise serve index.html for CSR
+			c.File(path.Join(s.staticDir, "index.html"))
+		})
 	}
 }
 

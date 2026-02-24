@@ -29,6 +29,7 @@ func NewComponentsHandler(
 		AuthUsername:   authUsername,
 		AuthPassword:   authPassword,
 		ListenAddress:  cfg.ListenAddress,
+		StaticDir:      cfg.StaticDir,
 		Storage:        store,
 		GeneralHandler: api.CORSMiddleware,
 	}
