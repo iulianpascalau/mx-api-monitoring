@@ -1,2 +1,2 @@
-Port = 8080
+ListenAddress = "0.0.0.0:8080"
 RetentionSeconds =3600

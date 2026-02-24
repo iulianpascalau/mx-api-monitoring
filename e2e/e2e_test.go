@@ -37,7 +37,7 @@ func TestE2EFlow(t *testing.T) {
 
 	log.Info("======== 3. Start Aggregation Service via componentsHandler")
 	aggregationConfig := aggCfg.Config{
-		Port:             0,
+		ListenAddress:    "127.0.0.1:0",
 		RetentionSeconds: 3600,
 	}
 

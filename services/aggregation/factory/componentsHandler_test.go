@@ -17,7 +17,7 @@ func TestNewComponentsHandler(t *testing.T) {
 		"admin",
 		"admin123",
 		config.Config{
-			Port:             0,
+			ListenAddress:    "0.0.0.0:0",
 			RetentionSeconds: 3600,
 		})
 
@@ -36,7 +36,7 @@ func TestComponentsHandlerMethods(t *testing.T) {
 		"admin",
 		"admin123",
 		config.Config{
-			Port:             0,
+			ListenAddress:    "0.0.0.0:0",
 			RetentionSeconds: 3600,
 		})
 

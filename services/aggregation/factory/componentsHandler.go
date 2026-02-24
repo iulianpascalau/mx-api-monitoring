@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"fmt"
-
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/api"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/config"
 	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
@@ -30,7 +28,7 @@ func NewComponentsHandler(
 		ServiceKeyApi:  serviceKeyApi,
 		AuthUsername:   authUsername,
 		AuthPassword:   authPassword,
-		ListenAddress:  fmt.Sprintf(":%d", cfg.Port),
+		ListenAddress:  cfg.ListenAddress,
 		Storage:        store,
 		GeneralHandler: api.CORSMiddleware,
 	}
