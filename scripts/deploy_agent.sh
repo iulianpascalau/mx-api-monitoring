@@ -2,8 +2,8 @@
 set -e
 
 # Configuration
-PROJECT_DIR="/home/${USER}/mx-api-monitoring"
-AGENT_SERVICE="mx-api-monitoring-agent"
+PROJECT_DIR="/home/${USER}/api-monitoring"
+AGENT_SERVICE="api-monitoring-agent"
 
 # Check argument
 BRANCH=$1

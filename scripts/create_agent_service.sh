@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration
-APP_NAME="mx-api-monitoring-agent"
-APP_DIR="/home/${USER}/mx-api-monitoring/services/agent"
+APP_NAME="api-monitoring-agent"
+APP_DIR="/home/${USER}/api-monitoring/services/agent"
 EXEC_PATH="${APP_DIR}/agent"
 
 # Create the service file content
