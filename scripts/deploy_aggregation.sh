@@ -5,6 +5,8 @@ set -e
 PROJECT_DIR="/home/${USER}/api-monitoring"
 AGGREGATION_SERVICE="api-monitoring-aggregation"
 FRONTEND_DIR="${PROJECT_DIR}/frontend"
+# Load common functions
+source ./scripts/common.sh
 
 # Check argument
 BRANCH=$1
@@ -52,8 +54,6 @@ fi
 
 # 4. Recompile Backend
 echo "Step 4: Recompiling Backend..."
-# Load common functions
-source ./scripts/common.sh
 
 # Ensure Go and Node are installed
 ensure_go_installed
