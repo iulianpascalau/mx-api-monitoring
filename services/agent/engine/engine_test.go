@@ -3,8 +3,8 @@ package engine
 import (
 	"testing"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/testsCommon"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/testsCommon"
 	"github.com/stretchr/testify/assert"
 )
 

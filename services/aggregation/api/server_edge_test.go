@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/common"
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/testsCommon"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/testsCommon"
 	"github.com/stretchr/testify/require"
 )
 

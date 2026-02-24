@@ -1,2 +1,2 @@
-# mx-api-monitoring
-MultiversX API monitoring for nodes
+# api-monitoring
+API monitoring for nodes

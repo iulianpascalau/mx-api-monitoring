@@ -1,4 +1,4 @@
-module github.com/iulianpascalau/mx-api-monitoring
+module github.com/iulianpascalau/api-monitoring
 
 go 1.24.0
 

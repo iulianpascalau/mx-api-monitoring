@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/common"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 )
 
 // Storage defines the interface for persisting and querying metric data

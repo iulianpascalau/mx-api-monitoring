@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/config"
+	"github.com/iulianpascalau/api-monitoring/services/agent/config"
 	"github.com/stretchr/testify/require"
 )
 

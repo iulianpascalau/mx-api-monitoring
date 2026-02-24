@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/agent/common"
+	"github.com/iulianpascalau/api-monitoring/services/agent/common"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

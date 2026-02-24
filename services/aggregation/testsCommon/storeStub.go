@@ -3,7 +3,7 @@ package testsCommon
 import (
 	"context"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/common"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 )
 
 // StoreStub -

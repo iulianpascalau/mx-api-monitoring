@@ -1,4 +1,4 @@
-# mx-api-monitoring — Full Technical Specification
+# api-monitoring — Full Technical Specification
 
 ## 1. Overview
 
@@ -13,7 +13,7 @@ The system monitors VM activity by polling local HTTP endpoints and reporting to
 ## 2. Repository Structure
 
 ```
-mx-api-monitoring/
+api-monitoring/
 ├── agent/                        # Monitor agent (Go)
 │   ├── cmd/main.go
 │   ├── config/config.go

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iulianpascalau/mx-api-monitoring/services/aggregation/storage"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/storage"
 	"github.com/stretchr/testify/require"
 )
 
