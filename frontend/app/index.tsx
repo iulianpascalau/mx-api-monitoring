@@ -7,20 +7,7 @@ import { useMemo, useState } from 'react';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 
-export interface Metric {
-    name: string;
-    value: string;
-    type: string;
-    numAggregation: number;
-    recordedAt: number;
-    displayOrder: number;
-}
-
-export interface MetricGroup {
-    vmName: string;
-    heartbeat: Metric | null;
-    metrics: Metric[];
-}
+import { Metric, MetricGroup } from '../lib/types';
 
 // Initial screenWidth fallback if needed
 const INITIAL_SCREEN_WIDTH = Dimensions.get("window").width;

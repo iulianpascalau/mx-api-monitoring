@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -133,6 +134,20 @@ func (s *server) setupRoutes() {
 				c.JSON(http.StatusNotFound, gin.H{"error": "api route not found"})
 				return
 			}
+
+			// Try to find a matching .html file for the route (e.g., /management -> management.html)
+			// This is better for Expo Router static exports.
+			pathName := strings.TrimPrefix(c.Request.URL.Path, "/")
+			pathName = strings.TrimSuffix(pathName, "/")
+			if pathName == "" {
+				pathName = "index"
+			}
+			fullPath := path.Join(s.staticDir, pathName+".html")
+			if _, err := os.Stat(fullPath); err == nil {
+				c.File(fullPath)
+				return
+			}
+
 			// Otherwise serve index.html for CSR
 			c.File(path.Join(s.staticDir, "index.html"))
 		})
