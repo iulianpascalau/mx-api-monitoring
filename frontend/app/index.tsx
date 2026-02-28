@@ -176,73 +176,78 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
-            <View style={[styles.header, isDark && styles.headerDark, isMobile && styles.headerMobile]}>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
-                    <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
-                        <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={[styles.headerRight, isMobile && styles.headerRightMobile]}>
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (Platform.OS === 'web') {
-                                window.location.reload();
-                            } else {
-                                refetch();
-                            }
-                        }}
-                        style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && styles.headerActionMobile]}
-                        disabled={isRefetching}
-                    >
-                        <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
-                        <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.manageButton, isMobile && styles.headerActionMobile]}
-                        onPress={() => router.push('/management')}
-                    >
-                        <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
-                        <Text style={styles.manageText}>Manage</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && styles.headerActionMobile]}>
-                        <Text style={[styles.logoutText, isMobile && styles.textAlignCented]}>Logout</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={
                     <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
                 }
             >
-                {isLoading && !data && (
-                    <Text style={styles.loadingText}>Loading metrics...</Text>
-                )}
+                <View style={[styles.header, isDark && styles.headerDark, isMobile && styles.headerMobile]}>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
+                        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
+                            <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={[styles.headerRight, isMobile && styles.headerRightMobile]}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (Platform.OS === 'web') {
+                                    window.location.reload();
+                                } else {
+                                    refetch();
+                                }
+                            }}
+                            style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && styles.headerActionMobile]}
+                            disabled={isRefetching}
+                        >
+                            <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                            <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.manageButton, isMobile && styles.headerActionMobile]}
+                            onPress={() => router.push('/management')}
+                        >
+                            <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                            <Text style={styles.manageText}>Manage</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && styles.headerActionMobile]}>
+                            <Text style={[styles.logoutText, isMobile && styles.textAlignCented]}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={styles.metricsContainer}>
+                    {isLoading && !data && (
+                        <Text style={styles.loadingText}>Loading metrics...</Text>
+                    )}
 
-                {groupedMetrics.map((group) => {
-                    let isHeartbeatActive = false;
-                    if (group.heartbeat) {
-                        const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 300;
-                        isHeartbeatActive = group.heartbeat.value === 'true' && !isStale;
-                    }
+                    {groupedMetrics.map((group) => {
+                        let isHeartbeatActive = false;
+                        if (group.heartbeat) {
+                            const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 300;
+                            isHeartbeatActive = group.heartbeat.value === 'true' && !isStale;
+                        }
 
-                    return (
-                        <View key={group.vmName} style={[styles.groupCard, isDark && styles.cardDark]}>
-                            <View style={[styles.groupHeader, isDark && styles.borderDark]}>
-                                <View style={[styles.dot, { backgroundColor: isHeartbeatActive ? '#10b981' : '#ef4444', marginRight: 10 }]} />
-                                <Text style={[styles.groupTitle, isDark && styles.textDark]}>{group.vmName}</Text>
+                        return (
+                            <View key={group.vmName} style={[styles.groupCard, isDark && styles.cardDark]}>
+                                <View style={[styles.groupHeader, isDark && styles.borderDark]}>
+                                    <View style={[styles.dot, { backgroundColor: isHeartbeatActive ? '#10b981' : '#ef4444', marginRight: 10 }]} />
+                                    <Text style={[styles.groupTitle, isDark && styles.textDark]}>{group.vmName}</Text>
+                                </View>
+
+                                {group.metrics.length === 0 ? (
+                                    <Text style={styles.noDataText}>No extra metrics</Text>
+                                ) : (
+                                    group.metrics.map(metric => renderMetric(metric))
+                                )}
                             </View>
+                        );
+                    })}
 
-                            {group.metrics.length === 0 ? (
-                                <Text style={styles.noDataText}>No extra metrics</Text>
-                            ) : (
-                                group.metrics.map(metric => renderMetric(metric))
-                            )}
-                        </View>
-                    );
-                })}
+                    {!isLoading && groupedMetrics.length === 0 && (
+                        <Text style={styles.noDataText}>No extra metrics</Text>
+                    )}
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -318,6 +323,9 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     scrollContent: {
+        paddingBottom: 16,
+    },
+    metricsContainer: {
         padding: 16,
     },
     loadingText: {
