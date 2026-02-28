@@ -85,17 +85,19 @@ function MetricGraph({ metric }: { metric: Metric }) {
 }
 
 export default function DashboardScreen() {
-    const { signOut, token, theme, toggleTheme } = useAuth();
+    const { token, theme, toggleTheme, signOut } = useAuth();
     const isDark = theme === 'dark';
+    const { width: windowWidth } = useWindowDimensions();
+    const isMobile = windowWidth < 600;
 
-    const { data, isLoading, refetch, isRefetching } = useQuery<{ metrics: Metric[] }>({
+    const { data: metricsData, isLoading, refetch, isRefetching } = useQuery<{ metrics: Metric[] }>({
         queryKey: ['metrics'],
         queryFn: async () => {
             const res = await apiClient.get('/metrics');
             return res.data;
         },
         enabled: !!token,
-        refetchInterval: 30000,
+        refetchInterval: 10000,
     });
 
     const { data: panelConfigs } = useQuery<Record<string, number>>({
@@ -108,11 +110,11 @@ export default function DashboardScreen() {
     });
 
     const groupedMetrics = useMemo(() => {
-        if (!data?.metrics) return [];
+        if (!metricsData?.metrics) return [];
 
         const groups: Record<string, MetricGroup> = {};
 
-        data.metrics.forEach((metric) => {
+        metricsData.metrics.forEach((metric) => {
             const parts = metric.name.split('.');
             const vmName = parts[0];
 
@@ -127,26 +129,28 @@ export default function DashboardScreen() {
             }
         });
 
-        return Object.values(groups).sort((a, b) => {
+        const sortedGroups = Object.values(groups).sort((a, b) => {
             const orderA = panelConfigs ? (panelConfigs[a.vmName] ?? 0) : 0;
             const orderB = panelConfigs ? (panelConfigs[b.vmName] ?? 0) : 0;
-
             if (orderA !== orderB) return orderA - orderB;
             return a.vmName.localeCompare(b.vmName);
-        }).map(group => ({
+        });
+
+        return sortedGroups.map(group => ({
             ...group,
             metrics: group.metrics.sort((a, b) => {
-                if (a.displayOrder !== b.displayOrder) return a.displayOrder - b.displayOrder;
+                const orderA = a.displayOrder ?? 0;
+                const orderB = b.displayOrder ?? 0;
+                if (orderA !== orderB) return orderA - orderB;
                 return a.name.localeCompare(b.name);
             })
         }));
-    }, [data, panelConfigs]);
+    }, [metricsData, panelConfigs]);
 
     const renderMetric = (metric: Metric) => {
         const parts = metric.name.split('.');
         const shortName = parts.slice(1).join('.');
-
-        const isStale = (Date.now() / 1000) - metric.recordedAt > 300;
+        const isStale = (Date.now() / 1000) - metric.recordedAt > 60;
         const showsGraph = metric.type === 'uint64' && metric.numAggregation > 1;
 
         return (
@@ -169,14 +173,14 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
-            <View style={[styles.header, isDark && styles.headerDark]}>
+            <View style={[styles.header, isDark && styles.headerDark, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
                 <View style={styles.headerTitleContainer}>
                     <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
                     <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
                         <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
                     </TouchableOpacity>
                 </View>
-                <View style={styles.headerRight}>
+                <View style={[styles.headerRight, isMobile && { flexDirection: 'column', alignItems: 'stretch', marginTop: 16 }]}>
                     <TouchableOpacity
                         onPress={() => {
                             if (Platform.OS === 'web') {
@@ -185,20 +189,20 @@ export default function DashboardScreen() {
                                 refetch();
                             }
                         }}
-                        style={[styles.refreshButton, isDark && styles.refreshButtonDark]}
+                        style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}
                         disabled={isRefetching}
                     >
                         <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
                         <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
                     </TouchableOpacity>
                     <Link href="/management" asChild>
-                        <TouchableOpacity style={styles.manageButton}>
+                        <TouchableOpacity style={[styles.manageButton, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}>
                             <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
                             <Text style={styles.manageText}>Manage</Text>
                         </TouchableOpacity>
                     </Link>
-                    <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
-                        <Text style={styles.logoutText}>Logout</Text>
+                    <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && { justifyContent: 'center' }]}>
+                        <Text style={[styles.logoutText, isMobile && { textAlign: 'center' }]}>Logout</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -209,14 +213,14 @@ export default function DashboardScreen() {
                     <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
                 }
             >
-                {isLoading && !data && (
+                {isLoading && !metricsData && (
                     <Text style={styles.loadingText}>Loading metrics...</Text>
                 )}
 
                 {groupedMetrics.map((group) => {
                     let isHeartbeatActive = false;
                     if (group.heartbeat) {
-                        const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 300;
+                        const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 60;
                         isHeartbeatActive = group.heartbeat.value === 'true' && !isStale;
                     }
 
