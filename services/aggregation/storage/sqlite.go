@@ -73,7 +73,13 @@ func createSchema(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS metrics (
 		name            TEXT    NOT NULL PRIMARY KEY,
 		type            TEXT    NOT NULL,
-		num_aggregation INTEGER NOT NULL DEFAULT 1
+		num_aggregation INTEGER NOT NULL DEFAULT 1,
+		display_order   INTEGER NOT NULL DEFAULT 0
+	);
+
+	CREATE TABLE IF NOT EXISTS panel_configs (
+		name            TEXT    NOT NULL PRIMARY KEY,
+		display_order   INTEGER NOT NULL DEFAULT 0
 	);
 
 	CREATE TABLE IF NOT EXISTS metrics_values (
@@ -90,6 +96,9 @@ func createSchema(db *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
+
+	// Migration: ensure display_order column exists in metrics
+	_, _ = db.Exec("ALTER TABLE metrics ADD COLUMN display_order INTEGER NOT NULL DEFAULT 0;")
 
 	// Make sure ON DELETE CASCADE works if enabled globally
 	_, _ = db.Exec("PRAGMA foreign_keys = ON;")
@@ -144,7 +153,7 @@ func (s *sqliteStorage) SaveMetric(ctx context.Context, name string, metricType 
 // GetLatestMetrics fetches the most recent value for each metric
 func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHistory, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT m.name, m.type, m.num_aggregation, v.value, v.recorded_at
+		SELECT m.name, m.type, m.num_aggregation, m.display_order, v.value, v.recorded_at
 		FROM metrics m
 		JOIN (
 			SELECT metric_name, value, recorded_at,
@@ -166,7 +175,7 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 		var val string
 		var recAt int64
 
-		err = rows.Scan(&h.Name, &h.Type, &h.NumAggregation, &val, &recAt)
+		err = rows.Scan(&h.Name, &h.Type, &h.NumAggregation, &h.DisplayOrder, &val, &recAt)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +196,7 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 func (s *sqliteStorage) GetMetricHistory(ctx context.Context, name string) (*common.MetricHistory, error) {
 	var h common.MetricHistory
 
-	err := s.db.QueryRowContext(ctx, "SELECT name, type, num_aggregation FROM metrics WHERE name = ?", name).Scan(&h.Name, &h.Type, &h.NumAggregation)
+	err := s.db.QueryRowContext(ctx, "SELECT name, type, num_aggregation, display_order FROM metrics WHERE name = ?", name).Scan(&h.Name, &h.Type, &h.NumAggregation, &h.DisplayOrder)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("metric not found")
 	}
@@ -227,6 +236,42 @@ func (s *sqliteStorage) GetMetricHistory(ctx context.Context, name string) (*com
 func (s *sqliteStorage) DeleteMetric(ctx context.Context, name string) error {
 	_, err := s.db.ExecContext(ctx, "DELETE FROM metrics WHERE name = ?", name)
 	return err
+}
+
+// UpdateMetricOrder updates the display order of a specific metric
+func (s *sqliteStorage) UpdateMetricOrder(ctx context.Context, name string, order int) error {
+	_, err := s.db.ExecContext(ctx, "UPDATE metrics SET display_order = ? WHERE name = ?", order, name)
+	return err
+}
+
+// UpdatePanelOrder updates the display order of a specific panel (VM)
+func (s *sqliteStorage) UpdatePanelOrder(ctx context.Context, name string, order int) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO panel_configs (name, display_order) 
+		VALUES (?, ?) 
+		ON CONFLICT(name) DO UPDATE SET display_order=excluded.display_order
+	`, name, order)
+	return err
+}
+
+// GetPanelsConfigs returns the display configurations for all panels
+func (s *sqliteStorage) GetPanelsConfigs(ctx context.Context) (map[string]int, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT name, display_order FROM panel_configs")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	res := make(map[string]int)
+	for rows.Next() {
+		var name string
+		var order int
+		if err := rows.Scan(&name, &order); err != nil {
+			return nil, err
+		}
+		res[name] = order
+	}
+	return res, rows.Err()
 }
 
 func (s *sqliteStorage) startRetentionCleaner(ctx context.Context) {

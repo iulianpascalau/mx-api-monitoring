@@ -113,6 +113,10 @@ func (s *server) setupRoutes() {
 		protected.GET("/metrics", s.handleGetMetrics)
 		protected.GET("/metrics/:name/history", s.handleGetMetricHistory)
 		protected.DELETE("/metrics/:name", s.handleDeleteMetric)
+
+		protected.GET("/config/panels", s.handleGetPanelsConfigs)
+		protected.POST("/config/panels", s.handleUpdatePanelOrder)
+		protected.POST("/config/metrics/order", s.handleUpdateMetricOrder)
 	}
 
 	// Serve static files from the frontend build if configured
@@ -129,7 +133,8 @@ func (s *server) setupRoutes() {
 				c.JSON(http.StatusNotFound, gin.H{"error": "api route not found"})
 				return
 			}
-			// Otherwise serve index.html for CSR
+
+			// Fallback to index.html for all client-side routes
 			c.File(path.Join(s.staticDir, "index.html"))
 		})
 	}
@@ -320,6 +325,7 @@ func (s *server) handleGetMetrics(c *gin.Context) {
 		Value          string `json:"value"`
 		Type           string `json:"type"`
 		NumAggregation int    `json:"numAggregation"`
+		DisplayOrder   int    `json:"displayOrder"`
 		RecordedAt     int64  `json:"recordedAt"`
 	}
 
@@ -331,6 +337,7 @@ func (s *server) handleGetMetrics(c *gin.Context) {
 				Value:          r.History[0].Value,
 				Type:           r.Type,
 				NumAggregation: r.NumAggregation,
+				DisplayOrder:   r.DisplayOrder,
 				RecordedAt:     r.History[0].RecordedAt,
 			})
 		}
@@ -362,5 +369,50 @@ func (s *server) handleDeleteMetric(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+func (s *server) handleGetPanelsConfigs(c *gin.Context) {
+	configs, err := s.storage.GetPanelsConfigs(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, configs)
+}
+
+func (s *server) handleUpdatePanelOrder(c *gin.Context) {
+	var req struct {
+		Name  string `json:"name"`
+		Order int    `json:"order"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	err := s.storage.UpdatePanelOrder(c.Request.Context(), req.Name, req.Order)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+func (s *server) handleUpdateMetricOrder(c *gin.Context) {
+	var req struct {
+		Name  string `json:"name"`
+		Order int    `json:"order"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	err := s.storage.UpdateMetricOrder(c.Request.Context(), req.Name, req.Order)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

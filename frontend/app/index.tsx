@@ -2,23 +2,12 @@ import { View, Text, StyleSheet, Dimensions, Platform, useWindowDimensions, Touc
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
 import { useAuth } from './_layout';
+import { Link, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 
-export interface Metric {
-    name: string;
-    value: string;
-    type: string;
-    numAggregation: number;
-    recordedAt: number;
-}
-
-export interface MetricGroup {
-    vmName: string;
-    heartbeat: Metric | null;
-    metrics: Metric[];
-}
+import { Metric, MetricGroup } from '../lib/types';
 
 // Initial screenWidth fallback if needed
 const INITIAL_SCREEN_WIDTH = Dimensions.get("window").width;
@@ -109,6 +98,15 @@ export default function DashboardScreen() {
         refetchInterval: 30000,
     });
 
+    const { data: panelConfigs } = useQuery<Record<string, number>>({
+        queryKey: ['panel-configs'],
+        queryFn: async () => {
+            const res = await apiClient.get('/config/panels');
+            return res.data;
+        },
+        enabled: !!token,
+    });
+
     const groupedMetrics = useMemo(() => {
         if (!data?.metrics) return [];
 
@@ -129,8 +127,20 @@ export default function DashboardScreen() {
             }
         });
 
-        return Object.values(groups).sort((a, b) => a.vmName.localeCompare(b.vmName));
-    }, [data]);
+        return Object.values(groups).sort((a, b) => {
+            const orderA = panelConfigs ? (panelConfigs[a.vmName] ?? 0) : 0;
+            const orderB = panelConfigs ? (panelConfigs[b.vmName] ?? 0) : 0;
+
+            if (orderA !== orderB) return orderA - orderB;
+            return a.vmName.localeCompare(b.vmName);
+        }).map(group => ({
+            ...group,
+            metrics: group.metrics.sort((a, b) => {
+                if (a.displayOrder !== b.displayOrder) return a.displayOrder - b.displayOrder;
+                return a.name.localeCompare(b.name);
+            })
+        }));
+    }, [data, panelConfigs]);
 
     const renderMetric = (metric: Metric) => {
         const parts = metric.name.split('.');
@@ -181,6 +191,12 @@ export default function DashboardScreen() {
                         <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
                         <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
                     </TouchableOpacity>
+                    <Link href="/management" asChild>
+                        <TouchableOpacity style={styles.manageButton}>
+                            <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                            <Text style={styles.manageText}>Manage</Text>
+                        </TouchableOpacity>
+                    </Link>
                     <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
                         <Text style={styles.logoutText}>Logout</Text>
                     </TouchableOpacity>
@@ -277,6 +293,20 @@ const styles = StyleSheet.create({
     },
     logoutText: {
         color: 'white',
+        fontWeight: '600',
+    },
+    manageButton: {
+        marginRight: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: '#4b5563', // Gray-600
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    manageText: {
+        color: 'white',
+        fontSize: 14,
         fontWeight: '600',
     },
     scrollContent: {

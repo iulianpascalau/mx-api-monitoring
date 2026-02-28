@@ -204,3 +204,45 @@ func TestAuth_InvalidToken(t *testing.T) {
 	serv.router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
+
+func TestConfigEndpoints(t *testing.T) {
+	serv, store := setupTestServer(t)
+	defer func() {
+		_ = store.Close()
+	}()
+
+	token := getValidToken(serv)
+
+	// 1. Test Update Panel Order
+	panelReq := `{"name":"VM1", "order":10}`
+	req, _ := http.NewRequest("POST", "/api/config/panels", bytes.NewBuffer([]byte(panelReq)))
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	// 2. Test Get Panel Configs
+	req, _ = http.NewRequest("GET", "/api/config/panels", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+	require.Contains(t, w.Body.String(), `"VM1":10`)
+
+	// 3. Test Update Metric Order
+	_ = store.SaveMetric(context.Background(), "VM1.CPU", "uint64", 1, "50", time.Now().Unix())
+	metricReq := `{"name":"VM1.CPU", "order":5}`
+	req, _ = http.NewRequest("POST", "/api/config/metrics/order", bytes.NewBuffer([]byte(metricReq)))
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	// 4. Verify metric order in GetMetrics
+	req, _ = http.NewRequest("GET", "/api/metrics", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+	require.Contains(t, w.Body.String(), `"displayOrder":5`)
+}

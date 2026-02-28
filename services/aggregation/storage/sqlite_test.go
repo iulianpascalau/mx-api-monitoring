@@ -98,3 +98,56 @@ func TestSQLiteStorage_RetentionCleaner(t *testing.T) {
 	require.Equal(t, "old.metric", hist.Name) // Metric definition should still exist
 	require.Equal(t, 0, len(hist.History))    // But values should be gone
 }
+
+func TestSQLiteStorage_Ordering(t *testing.T) {
+	s, err := NewSQLiteStorage(":memory:", 3600)
+	require.NoError(t, err)
+	defer func() {
+		_ = s.Close()
+	}()
+
+	ctx := context.Background()
+
+	// 1. Test Metric Ordering
+	err = s.SaveMetric(ctx, "m1", "uint64", 1, "1", time.Now().Unix())
+	require.NoError(t, err)
+	err = s.SaveMetric(ctx, "m2", "uint64", 1, "2", time.Now().Unix())
+	require.NoError(t, err)
+
+	err = s.UpdateMetricOrder(ctx, "m1", 10)
+	require.NoError(t, err)
+
+	latest, err := s.GetLatestMetrics(ctx)
+	require.NoError(t, err)
+
+	var m1Found bool
+	for _, m := range latest {
+		if m.Name == "m1" {
+			require.Equal(t, 10, m.DisplayOrder)
+			m1Found = true
+		}
+		if m.Name == "m2" {
+			require.Equal(t, 0, m.DisplayOrder)
+		}
+	}
+	require.True(t, m1Found)
+
+	// 2. Test Panel Ordering
+	err = s.UpdatePanelOrder(ctx, "VM1", 5)
+	require.NoError(t, err)
+	err = s.UpdatePanelOrder(ctx, "VM2", 1)
+	require.NoError(t, err)
+
+	configs, err := s.GetPanelsConfigs(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(configs))
+	require.Equal(t, 5, configs["VM1"])
+	require.Equal(t, 1, configs["VM2"])
+
+	// Update existing panel
+	err = s.UpdatePanelOrder(ctx, "VM1", 0)
+	require.NoError(t, err)
+	configs, err = s.GetPanelsConfigs(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 0, configs["VM1"])
+}

@@ -20,6 +20,15 @@ type Storage interface {
 	// DeleteMetric removes a metric definition and all associated values
 	DeleteMetric(ctx context.Context, name string) error
 
+	// UpdateMetricOrder updates the display order of a specific metric
+	UpdateMetricOrder(ctx context.Context, name string, order int) error
+
+	// UpdatePanelOrder updates the display order of a specific panel (VM)
+	UpdatePanelOrder(ctx context.Context, name string, order int) error
+
+	// GetPanelsConfigs returns the display configurations for all panels
+	GetPanelsConfigs(ctx context.Context) (map[string]int, error)
+
 	// Close shuts down the database connection
 	Close() error
 
