@@ -44,3 +44,9 @@ run-frontend:
 	@echo "Starting the React Native frontend"
 	cd frontend && yarn start
 
+compile-frontend:
+	cd frontend && yarn install --ignore-engines && npx expo export --platform web
+
+run-aggregation: build-aggregation
+	cd ./services/aggregation && ./aggregation -log-level *:DEBUG
+
