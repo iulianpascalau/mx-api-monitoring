@@ -1,2 +1,3 @@
 ListenAddress = "0.0.0.0:8080"
-RetentionSeconds =3600
+RetentionSeconds = 3600
+StaticDir = "../../frontend/dist"

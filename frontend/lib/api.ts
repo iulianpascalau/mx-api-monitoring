@@ -30,7 +30,7 @@ const getHostIp = () => {
 
 export const API_BASE_URL = __DEV__
     ? `http://${getHostIp()}:8080/api`
-    : "https://your-production-url.com/api";
+    : "/api";
 
 console.log(`[API] Base URL configured to: ${API_BASE_URL}`);
 
