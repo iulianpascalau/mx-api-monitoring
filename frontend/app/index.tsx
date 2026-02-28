@@ -87,6 +87,7 @@ function MetricGraph({ metric }: { metric: Metric }) {
 
 export default function DashboardScreen() {
     const { token, theme, toggleTheme, signOut } = useAuth();
+    const router = useRouter();
     const isDark = theme === 'dark';
 
     // Safety check for window dimensions
@@ -175,14 +176,14 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
-            <View style={[styles.header, isDark && styles.headerDark, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
+            <View style={[styles.header, isDark && styles.headerDark, isMobile && styles.headerMobile]}>
                 <View style={styles.headerTitleContainer}>
                     <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
                     <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
                         <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
                     </TouchableOpacity>
                 </View>
-                <View style={[styles.headerRight, isMobile && { flexDirection: 'column', alignItems: 'stretch', marginTop: 16 }]}>
+                <View style={[styles.headerRight, isMobile && styles.headerRightMobile]}>
                     <TouchableOpacity
                         onPress={() => {
                             if (Platform.OS === 'web') {
@@ -191,20 +192,21 @@ export default function DashboardScreen() {
                                 refetch();
                             }
                         }}
-                        style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}
+                        style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && styles.headerActionMobile]}
                         disabled={isRefetching}
                     >
                         <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
                         <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
                     </TouchableOpacity>
-                    <Link href="/management" asChild>
-                        <TouchableOpacity style={[styles.manageButton, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}>
-                            <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
-                            <Text style={styles.manageText}>Manage</Text>
-                        </TouchableOpacity>
-                    </Link>
-                    <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && { justifyContent: 'center' }]}>
-                        <Text style={[styles.logoutText, isMobile && { textAlign: 'center' }]}>Logout</Text>
+                    <TouchableOpacity
+                        style={[styles.manageButton, isMobile && styles.headerActionMobile]}
+                        onPress={() => router.push('/management')}
+                    >
+                        <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                        <Text style={styles.manageText}>Manage</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && styles.headerActionMobile]}>
+                        <Text style={[styles.logoutText, isMobile && styles.textAlignCented]}>Logout</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -427,5 +429,22 @@ const styles = StyleSheet.create({
     },
     borderDark: {
         borderBottomColor: '#374151',
+    },
+    headerMobile: {
+        flexDirection: 'column',
+        alignItems: 'stretch',
+    },
+    headerRightMobile: {
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        marginTop: 16,
+    },
+    headerActionMobile: {
+        marginRight: 0,
+        marginBottom: 10,
+        justifyContent: 'center',
+    },
+    textAlignCented: {
+        textAlign: 'center',
     }
 });
