@@ -2,9 +2,22 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState, createContext, useContext } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAuthToken, setAuthToken } from '../lib/api';
-import { ActivityIndicator, View, useColorScheme as useDeviceColorScheme } from 'react-native';
+import { ActivityIndicator, View, useColorScheme as useDeviceColorScheme, Platform } from 'react-native';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Inject view constraints on web to prevent zooming
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  let meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+  if (meta) {
+    meta.setAttribute('content', 'width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, maximum-scale=1');
+  } else {
+    meta = document.createElement('meta');
+    meta.name = "viewport";
+    meta.content = "width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, maximum-scale=1";
+    document.getElementsByTagName('head')[0].appendChild(meta);
+  }
+}
 
 const queryClient = new QueryClient();
 
