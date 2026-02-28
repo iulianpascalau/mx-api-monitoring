@@ -6,7 +6,7 @@ import { useAuth } from './_layout';
 
 export default function LoginScreen() {
     const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('admin123');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -41,7 +41,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={[styles.card, isDark && styles.cardDark]}>
-                <Text style={[styles.title, isDark && styles.textDark]}>MX Monitoring</Text>
+                <Text style={[styles.title, isDark && styles.textDark]}>API Monitoring</Text>
                 <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>Sign in to your account</Text>
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}

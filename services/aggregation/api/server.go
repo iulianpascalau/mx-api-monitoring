@@ -118,9 +118,9 @@ func (s *server) setupRoutes() {
 	// Serve static files from the frontend build if configured
 	if s.staticDir != "" {
 		log.Info("serving static files", "dir", s.staticDir)
-		s.router.Static("/static", path.Join(s.staticDir, "static"))
+		s.router.Static("/_expo", path.Join(s.staticDir, "_expo"))
+		s.router.Static("/assets", path.Join(s.staticDir, "assets"))
 		s.router.StaticFile("/favicon.ico", path.Join(s.staticDir, "favicon.ico"))
-		// Add other static assets if necessary
 
 		// NoRoute for SPA fallback
 		s.router.NoRoute(func(c *gin.Context) {
