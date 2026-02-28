@@ -9,16 +9,17 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Metric, MetricGroup } from '../lib/types';
 
-// Initial screenWidth fallback if needed
-const INITIAL_SCREEN_WIDTH = Dimensions.get("window").width;
+// Initial screenWidth fallback if needed (using 800 as safe default if window is not available)
+const INITIAL_SCREEN_WIDTH = Dimensions.get("window")?.width || 800;
 
 // A sub-component to fetch and render the graph for a specific metric
 function MetricGraph({ metric }: { metric: Metric }) {
-    const { width: windowWidth } = useWindowDimensions();
+    const { width: rawWidth } = useWindowDimensions();
+    const windowWidth = rawWidth || INITIAL_SCREEN_WIDTH;
 
     // Calculate available width: windowPadding (32) + cardPadding (32) = 64
     // We'll subtract 80 to have a small safe margin
-    const chartWidth = Math.min(windowWidth - 80, 500);
+    const chartWidth = Math.min(Math.max(windowWidth - 80, 100), 500);
     const { theme } = useAuth();
     const { data, isLoading, error } = useQuery<{ history: { value: string, recordedAt: number }[] }>({
         queryKey: ['metrics-history', metric.name],
@@ -85,8 +86,13 @@ function MetricGraph({ metric }: { metric: Metric }) {
 }
 
 export default function DashboardScreen() {
-    const { signOut, token, theme, toggleTheme } = useAuth();
+    const { token, theme, toggleTheme, signOut } = useAuth();
     const isDark = theme === 'dark';
+
+    // Safety check for window dimensions
+    const { width: rawWidth } = useWindowDimensions();
+    const windowWidth = rawWidth || INITIAL_SCREEN_WIDTH;
+    const isMobile = windowWidth < 600;
 
     const { data, isLoading, refetch, isRefetching } = useQuery<{ metrics: Metric[] }>({
         queryKey: ['metrics'],
@@ -169,14 +175,14 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
-            <View style={[styles.header, isDark && styles.headerDark]}>
+            <View style={[styles.header, isDark && styles.headerDark, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
                 <View style={styles.headerTitleContainer}>
                     <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
                     <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
                         <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
                     </TouchableOpacity>
                 </View>
-                <View style={styles.headerRight}>
+                <View style={[styles.headerRight, isMobile && { flexDirection: 'column', alignItems: 'stretch', marginTop: 16 }]}>
                     <TouchableOpacity
                         onPress={() => {
                             if (Platform.OS === 'web') {
@@ -185,20 +191,20 @@ export default function DashboardScreen() {
                                 refetch();
                             }
                         }}
-                        style={[styles.refreshButton, isDark && styles.refreshButtonDark]}
+                        style={[styles.refreshButton, isDark && styles.refreshButtonDark, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}
                         disabled={isRefetching}
                     >
                         <Ionicons name="refresh-outline" size={18} color="white" style={{ marginRight: 6 }} />
                         <Text style={styles.refreshText}>{isRefetching ? 'Reloading...' : 'Refresh Data'}</Text>
                     </TouchableOpacity>
                     <Link href="/management" asChild>
-                        <TouchableOpacity style={styles.manageButton}>
+                        <TouchableOpacity style={[styles.manageButton, isMobile && { marginRight: 0, marginBottom: 10, justifyContent: 'center' }]}>
                             <Ionicons name="settings-outline" size={18} color="white" style={{ marginRight: 6 }} />
                             <Text style={styles.manageText}>Manage</Text>
                         </TouchableOpacity>
                     </Link>
-                    <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
-                        <Text style={styles.logoutText}>Logout</Text>
+                    <TouchableOpacity onPress={signOut} style={[styles.logoutButton, isMobile && { justifyContent: 'center' }]}>
+                        <Text style={[styles.logoutText, isMobile && { textAlign: 'center' }]}>Logout</Text>
                     </TouchableOpacity>
                 </View>
             </View>
