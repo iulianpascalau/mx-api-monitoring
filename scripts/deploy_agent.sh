@@ -38,7 +38,8 @@ git pull origin "$BRANCH"
 echo "Step 3: Recompiling Backend..."
 # Load common functions
 source ./scripts/common.sh
-
+#Ensure build tools are installed
+ensure_tools_installed
 # Ensure Go is installed
 ensure_go_installed
 GO_CMD="go"

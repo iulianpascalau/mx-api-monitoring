@@ -210,7 +210,7 @@ func TestE2EFlowWithDataTrim(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		// We'll mimic a JSON payload where `status` is what we want
 		currentNonce := atomic.AddUint64(&globalNonce, 1)
-		_, _ = w.Write([]byte(fmt.Sprintf(`{"nonce": %d, "latency": 12}`, currentNonce)))
+		_, _ = fmt.Fprintf(w, `{"nonce": %d, "latency": 12}`, currentNonce)
 	}))
 	defer mockAPI.Close()
 

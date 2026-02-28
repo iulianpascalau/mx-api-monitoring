@@ -55,6 +55,8 @@ fi
 # 4. Recompile Backend
 echo "Step 4: Recompiling Backend..."
 
+#Ensure build tools are installed
+ensure_tools_installed
 # Ensure Go and Node are installed
 ensure_go_installed
 GO_CMD="go"

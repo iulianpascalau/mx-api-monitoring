@@ -1,5 +1,10 @@
 #!/bin/bash
 
+ensure_tools_installed() {
+  sudo apt update
+  sudo apt install build-essential
+}
+
 # Function to ensure the correct Go version is installed
 ensure_go_installed() {
     # Load variables if not already loaded (and if the file exists)
