@@ -125,7 +125,8 @@ func TestSQLiteStorage_Ordering(t *testing.T) {
 		if m.Name == "m1" {
 			require.Equal(t, 10, m.DisplayOrder)
 			m1Found = true
-		} else if m.Name == "m2" {
+		}
+		if m.Name == "m2" {
 			require.Equal(t, 0, m.DisplayOrder)
 		}
 	}
