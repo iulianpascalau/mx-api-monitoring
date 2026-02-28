@@ -101,6 +101,41 @@ func TestHandlers_StorageErrors(t *testing.T) {
 	serv.router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 	require.Contains(t, w.Body.String(), "db del error")
+
+	// handleGetPanelsConfigs
+	store.GetPanelsConfigsHandler = func(ctx context.Context) (map[string]int, error) {
+		return nil, errors.New("db get config error")
+	}
+	req, _ = http.NewRequest("GET", "/api/config/panels", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	require.Contains(t, w.Body.String(), "db get config error")
+
+	// handleUpdatePanelOrder
+	store.UpdatePanelOrderHandler = func(ctx context.Context, name string, order int) error {
+		return errors.New("db update panel error")
+	}
+	panelReq := `{"name":"VM1", "order":1}`
+	req, _ = http.NewRequest("POST", "/api/config/panels", bytes.NewBuffer([]byte(panelReq)))
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	require.Contains(t, w.Body.String(), "db update panel error")
+
+	// handleUpdateMetricOrder
+	store.UpdateMetricOrderHandler = func(ctx context.Context, name string, order int) error {
+		return errors.New("db update metric error")
+	}
+	metricReq := `{"name":"m1", "order":1}`
+	req, _ = http.NewRequest("POST", "/api/config/metrics/order", bytes.NewBuffer([]byte(metricReq)))
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	serv.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	require.Contains(t, w.Body.String(), "db update metric error")
 }
 
 func TestHandlers_BadPayloads(t *testing.T) {

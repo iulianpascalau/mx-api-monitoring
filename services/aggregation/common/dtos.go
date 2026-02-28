@@ -5,6 +5,7 @@ type MetricDefinition struct {
 	Name           string `json:"name"`
 	Type           string `json:"type"`
 	NumAggregation int    `json:"numAggregation"`
+	DisplayOrder   int    `json:"displayOrder"`
 }
 
 // MetricValue represents a single reported data point
@@ -18,5 +19,6 @@ type MetricHistory struct {
 	Name           string        `json:"name"`
 	Type           string        `json:"type"`
 	NumAggregation int           `json:"numAggregation"`
+	DisplayOrder   int           `json:"displayOrder"`
 	History        []MetricValue `json:"history"`
 }
