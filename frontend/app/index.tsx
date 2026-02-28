@@ -13,12 +13,7 @@ import { Metric, MetricGroup } from '../lib/types';
 const INITIAL_SCREEN_WIDTH = Dimensions.get("window").width;
 
 // A sub-component to fetch and render the graph for a specific metric
-function MetricGraph({ metric }: { metric: Metric }) {
-    const { width: windowWidth } = useWindowDimensions();
-
-    // Calculate available width: windowPadding (32) + cardPadding (32) = 64
-    // We'll subtract 80 to have a small safe margin
-    const chartWidth = Math.min(windowWidth - 80, 500);
+function MetricGraph({ metric, chartWidth }: { metric: Metric; chartWidth: number }) {
     const { theme } = useAuth();
     const { data, isLoading, error } = useQuery<{ history: { value: string, recordedAt: number }[] }>({
         queryKey: ['metrics-history', metric.name],
@@ -87,10 +82,12 @@ function MetricGraph({ metric }: { metric: Metric }) {
 export default function DashboardScreen() {
     const { token, theme, toggleTheme, signOut } = useAuth();
     const isDark = theme === 'dark';
-    const { width: windowWidth } = useWindowDimensions();
+    const { width: rawWidth } = useWindowDimensions();
+    const windowWidth = rawWidth || INITIAL_SCREEN_WIDTH;
     const isMobile = windowWidth < 600;
+    const chartWidth = Math.min(Math.max(windowWidth - 80, 100), 500);
 
-    const { data: metricsData, isLoading, refetch, isRefetching } = useQuery<{ metrics: Metric[] }>({
+    const { data: metricsData, isLoading, error: metricsError, refetch, isRefetching } = useQuery<{ metrics: Metric[] }>({
         queryKey: ['metrics'],
         queryFn: async () => {
             const res = await apiClient.get('/metrics');
@@ -100,7 +97,7 @@ export default function DashboardScreen() {
         refetchInterval: 10000,
     });
 
-    const { data: panelConfigs } = useQuery<Record<string, number>>({
+    const { data: panelConfigs, error: panelError } = useQuery<Record<string, number>>({
         queryKey: ['panel-configs'],
         queryFn: async () => {
             const res = await apiClient.get('/config/panels');
@@ -147,7 +144,7 @@ export default function DashboardScreen() {
         }));
     }, [metricsData, panelConfigs]);
 
-    const renderMetric = (metric: Metric) => {
+    const renderMetric = (metric: Metric, currentChartWidth: number) => {
         const parts = metric.name.split('.');
         const shortName = parts.slice(1).join('.');
         const isStale = (Date.now() / 1000) - metric.recordedAt > 60;
@@ -161,7 +158,7 @@ export default function DashboardScreen() {
                 </View>
 
                 {showsGraph ? (
-                    <MetricGraph metric={metric} />
+                    <MetricGraph metric={metric} chartWidth={currentChartWidth} />
                 ) : metric.type === 'bool' ? (
                     <View style={[styles.dot, { backgroundColor: metric.value === 'true' && !isStale ? '#10b981' : '#ef4444' }]} />
                 ) : (
@@ -217,6 +214,17 @@ export default function DashboardScreen() {
                     <Text style={styles.loadingText}>Loading metrics...</Text>
                 )}
 
+                {(metricsError || panelError) && (
+                    <View style={styles.errorContainer}>
+                        <Text style={styles.errorText}>
+                            Error loading data: {(metricsError as any)?.message || (panelError as any)?.message}
+                        </Text>
+                        <TouchableOpacity onPress={() => refetch()} style={styles.retryButton}>
+                            <Text style={styles.retryText}>Retry</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
                 {groupedMetrics.map((group) => {
                     let isHeartbeatActive = false;
                     if (group.heartbeat) {
@@ -234,7 +242,7 @@ export default function DashboardScreen() {
                             {group.metrics.length === 0 ? (
                                 <Text style={styles.noDataText}>No extra metrics</Text>
                             ) : (
-                                group.metrics.map(metric => renderMetric(metric))
+                                group.metrics.map(metric => renderMetric(metric, chartWidth))
                             )}
                         </View>
                     );
@@ -425,5 +433,27 @@ const styles = StyleSheet.create({
     },
     borderDark: {
         borderBottomColor: '#374151',
-    }
+    },
+    errorContainer: {
+        backgroundColor: '#fee2e2',
+        padding: 16,
+        borderRadius: 8,
+        margin: 16,
+        alignItems: 'center',
+    },
+    errorText: {
+        color: '#b91c1c',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#ef4444',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 6,
+    },
+    retryText: {
+        color: 'white',
+        fontWeight: '600',
+    },
 });
