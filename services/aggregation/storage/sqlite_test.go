@@ -151,3 +151,31 @@ func TestSQLiteStorage_Ordering(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, configs["VM1"])
 }
+
+func TestSQLiteStorage_GetLatestMetrics_EmptyValues(t *testing.T) {
+	s, err := NewSQLiteStorage(":memory:", 3600)
+	require.NoError(t, err)
+	defer func() {
+		_ = s.Close()
+	}()
+
+	ctx := context.Background()
+
+	// Insert a metric
+	err = s.SaveMetric(ctx, "VM1.Empty_Metric", "string", 1, "test", time.Now().Unix())
+	require.NoError(t, err)
+
+	// Manually delete the value but keep the definition to mimic the cleaner job
+	_, err = s.db.ExecContext(ctx, "DELETE FROM metrics_values WHERE metric_name = 'VM1.Empty_Metric'")
+	require.NoError(t, err)
+
+	// Test GetLatestMetrics
+	latest, err := s.GetLatestMetrics(ctx)
+	require.NoError(t, err)
+
+	require.Len(t, latest, 1)
+	require.Equal(t, "VM1.Empty_Metric", latest[0].Name)
+	require.Len(t, latest[0].History, 1)
+	require.Equal(t, "", latest[0].History[0].Value)
+	require.Equal(t, int64(0), latest[0].History[0].RecordedAt)
+}

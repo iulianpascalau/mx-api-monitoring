@@ -155,7 +155,7 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT m.name, m.type, m.num_aggregation, m.display_order, v.value, v.recorded_at
 		FROM metrics m
-		JOIN (
+		LEFT JOIN (
 			SELECT metric_name, value, recorded_at,
 				ROW_NUMBER() OVER(PARTITION BY metric_name ORDER BY recorded_at DESC) as rn
 			FROM metrics_values
@@ -172,18 +172,27 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 
 	for rows.Next() {
 		var h common.MetricHistory
-		var val string
-		var recAt int64
+		var val sql.NullString
+		var recAt sql.NullInt64
 
 		err = rows.Scan(&h.Name, &h.Type, &h.NumAggregation, &h.DisplayOrder, &val, &recAt)
 		if err != nil {
 			return nil, err
 		}
 
+		v := ""
+		if val.Valid {
+			v = val.String
+		}
+		var r int64
+		if recAt.Valid {
+			r = recAt.Int64
+		}
+
 		h.History = []common.MetricValue{
 			{
-				Value:      val,
-				RecordedAt: recAt,
+				Value:      v,
+				RecordedAt: r,
 			},
 		}
 		results = append(results, h)

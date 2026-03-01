@@ -217,16 +217,48 @@ export default function DashboardScreen() {
 
                 {groupedMetrics.map((group) => {
                     let isHeartbeatActive = false;
+                    let maxRecordedAt = 0;
+
                     if (group.heartbeat) {
                         const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 300;
                         isHeartbeatActive = group.heartbeat.value === 'true' && !isStale;
+                        maxRecordedAt = group.heartbeat.recordedAt;
+                    }
+
+                    group.metrics.forEach(m => {
+                        if (m.recordedAt > maxRecordedAt) {
+                            maxRecordedAt = m.recordedAt;
+                        }
+                    });
+
+                    let lastUpdatedText = '';
+                    let isLastUpdatedStale = false;
+
+                    if (maxRecordedAt === 0) {
+                        lastUpdatedText = 'not updated recently';
+                        isLastUpdatedStale = true;
+                    } else {
+                        const diffSec = Math.floor((Date.now() / 1000) - maxRecordedAt);
+                        if (diffSec > 300) {
+                            lastUpdatedText = 'not updated recently';
+                            isLastUpdatedStale = true;
+                        } else if (diffSec < 60) {
+                            lastUpdatedText = `updated ${Math.max(0, diffSec)} sec ago`;
+                        } else {
+                            lastUpdatedText = `updated ${Math.floor(diffSec / 60)} min ${Math.floor(diffSec / 60) === 1 ? 'ago' : 'ago'}`;
+                        }
                     }
 
                     return (
                         <View key={group.vmName} style={[styles.groupCard, isDark && styles.cardDark]}>
                             <View style={[styles.groupHeader, isDark && styles.borderDark]}>
                                 <View style={[styles.dot, { backgroundColor: isHeartbeatActive ? '#10b981' : '#ef4444', marginRight: 10 }]} />
-                                <Text style={[styles.groupTitle, isDark && styles.textDark]}>{group.vmName}</Text>
+                                <View>
+                                    <Text style={[styles.groupTitle, isDark && styles.textDark]}>{group.vmName}</Text>
+                                    <Text style={[styles.lastUpdatedText, isLastUpdatedStale ? styles.lastUpdatedStale : (isDark ? styles.lastUpdatedDark : undefined)]}>
+                                        {lastUpdatedText}
+                                    </Text>
+                                </View>
                             </View>
 
                             {group.metrics.length === 0 ? (
@@ -373,6 +405,17 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#374151',
+    },
+    lastUpdatedText: {
+        fontSize: 12,
+        color: '#6b7280',
+        marginTop: 2,
+    },
+    lastUpdatedStale: {
+        color: '#ef4444',
+    },
+    lastUpdatedDark: {
+        color: '#9ca3af',
     },
     metricRow: {
         flexDirection: 'row',
