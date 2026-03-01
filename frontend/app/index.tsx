@@ -174,8 +174,8 @@ export default function DashboardScreen() {
         );
     };
 
-    return (
-        <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
+    const dashboardContent = (
+        <>
             <View style={[styles.header, isDark && styles.headerDark, isMobile && styles.headerMobile]}>
                 <View style={styles.headerTitleContainer}>
                     <Text style={[styles.title, isDark && styles.textDark]}>Dashboard</Text>
@@ -210,13 +210,7 @@ export default function DashboardScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
-
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                refreshControl={
-                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-                }
-            >
+            <View style={styles.metricsContainer}>
                 {isLoading && !data && (
                     <Text style={styles.loadingText}>Loading metrics...</Text>
                 )}
@@ -243,6 +237,33 @@ export default function DashboardScreen() {
                         </View>
                     );
                 })}
+
+                {!isLoading && groupedMetrics.length === 0 && (
+                    <Text style={styles.noDataText}>No extra metrics</Text>
+                )}
+            </View>
+        </>
+    );
+
+    if (Platform.OS === 'web') {
+        return (
+            <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark, { flex: undefined, minHeight: '100vh' } as any]}>
+                <View style={styles.scrollContent}>
+                    {dashboardContent}
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={[styles.safeArea, isDark && styles.bgDark]}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+                }
+            >
+                {dashboardContent}
             </ScrollView>
         </SafeAreaView>
     );
@@ -318,6 +339,9 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     scrollContent: {
+        paddingBottom: 16,
+    },
+    metricsContainer: {
         padding: 16,
     },
     loadingText: {

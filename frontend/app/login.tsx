@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiClient, API_BASE_URL } from '../lib/api';
 import { useAuth } from './_layout';
@@ -37,7 +37,7 @@ export default function LoginScreen() {
     };
 
     return (
-        <View style={[styles.container, isDark && styles.containerDark]}>
+        <View style={[styles.container, isDark && styles.containerDark, Platform.OS === 'web' && { flex: undefined, minHeight: '100vh' } as any]}>
             <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
                 <Text style={styles.themeToggleText}>{isDark ? '☀️' : '🌙'}</Text>
             </TouchableOpacity>

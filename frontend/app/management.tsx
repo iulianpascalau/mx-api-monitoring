@@ -155,8 +155,8 @@ export default function ManagementScreen() {
         );
     }
 
-    return (
-        <SafeAreaView style={[styles.container, isDark && styles.bgDark]}>
+    const managementContent = (
+        <>
             <View style={[styles.header, isDark && styles.headerDark]}>
                 <View style={styles.headerLeft}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -165,8 +165,7 @@ export default function ManagementScreen() {
                     <Text style={[styles.title, isDark && styles.textDark]}>Metrics Management</Text>
                 </View>
             </View>
-
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.metricsContainer}>
                 {groupedMetrics.map((group, gIndex) => (
                     <View key={group.vmName} style={[styles.panelCard, isDark && styles.cardDark]}>
                         <View style={styles.panelHeader}>
@@ -239,6 +238,24 @@ export default function ManagementScreen() {
                         </View>
                     </View>
                 ))}
+            </View>
+        </>
+    );
+
+    if (Platform.OS === 'web') {
+        return (
+            <SafeAreaView style={[styles.container, isDark && styles.bgDark, { flex: undefined, minHeight: '100vh' } as any]}>
+                <View style={styles.scrollContent}>
+                    {managementContent}
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={[styles.container, isDark && styles.bgDark]}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                {managementContent}
             </ScrollView>
         </SafeAreaView>
     );
@@ -280,6 +297,9 @@ const styles = StyleSheet.create({
         color: '#f9fafb',
     },
     scrollContent: {
+        paddingBottom: 16,
+    },
+    metricsContainer: {
         padding: 16,
     },
     panelCard: {
