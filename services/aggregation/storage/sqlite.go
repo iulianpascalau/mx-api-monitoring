@@ -155,7 +155,7 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT m.name, m.type, m.num_aggregation, m.display_order, v.value, v.recorded_at
 		FROM metrics m
-		JOIN (
+		LEFT JOIN (
 			SELECT metric_name, value, recorded_at,
 				ROW_NUMBER() OVER(PARTITION BY metric_name ORDER BY recorded_at DESC) as rn
 			FROM metrics_values
