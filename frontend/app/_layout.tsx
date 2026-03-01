@@ -17,6 +17,17 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
     meta.content = "width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, maximum-scale=1";
     document.getElementsByTagName('head')[0].appendChild(meta);
   }
+
+  // Inject styles to allow native browser scrolling to hide the address bar on mobile web
+  const style = document.createElement('style');
+  style.textContent = `
+    html, body, #root {
+      height: auto !important;
+      min-height: 100% !important;
+      overflow: auto !important;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 const queryClient = new QueryClient();

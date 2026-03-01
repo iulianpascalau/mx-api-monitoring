@@ -155,91 +155,107 @@ export default function ManagementScreen() {
         );
     }
 
-    return (
-        <SafeAreaView style={[styles.container, isDark && styles.bgDark]}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={[styles.header, isDark && styles.headerDark]}>
-                    <View style={styles.headerLeft}>
-                        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                            <Ionicons name="arrow-back" size={24} color={isDark ? "white" : "black"} />
-                        </TouchableOpacity>
-                        <Text style={[styles.title, isDark && styles.textDark]}>Metrics Management</Text>
-                    </View>
+    const managementContent = (
+        <>
+            <View style={[styles.header, isDark && styles.headerDark]}>
+                <View style={styles.headerLeft}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={24} color={isDark ? "white" : "black"} />
+                    </TouchableOpacity>
+                    <Text style={[styles.title, isDark && styles.textDark]}>Metrics Management</Text>
                 </View>
-                <View style={styles.metricsContainer}>
-                    {groupedMetrics.map((group, gIndex) => (
-                        <View key={group.vmName} style={[styles.panelCard, isDark && styles.cardDark]}>
-                            <View style={styles.panelHeader}>
-                                <Text style={[styles.panelTitle, isDark && styles.textDark]}>{group.vmName}</Text>
-                                <View style={styles.orderControls}>
-                                    <TouchableOpacity
-                                        onPress={() => handleMovePanel(gIndex, 'up')}
-                                        disabled={gIndex === 0}
-                                        style={[styles.orderButton, gIndex === 0 && styles.disabledButton]}
-                                    >
-                                        <Ionicons name="arrow-up" size={18} color="white" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={() => handleMovePanel(gIndex, 'down')}
-                                        disabled={gIndex === groupedMetrics.length - 1}
-                                        style={[styles.orderButton, gIndex === groupedMetrics.length - 1 && styles.disabledButton]}
-                                    >
-                                        <Ionicons name="arrow-down" size={18} color="white" />
-                                    </TouchableOpacity>
-                                </View>
+            </View>
+            <View style={styles.metricsContainer}>
+                {groupedMetrics.map((group, gIndex) => (
+                    <View key={group.vmName} style={[styles.panelCard, isDark && styles.cardDark]}>
+                        <View style={styles.panelHeader}>
+                            <Text style={[styles.panelTitle, isDark && styles.textDark]}>{group.vmName}</Text>
+                            <View style={styles.orderControls}>
+                                <TouchableOpacity
+                                    onPress={() => handleMovePanel(gIndex, 'up')}
+                                    disabled={gIndex === 0}
+                                    style={[styles.orderButton, gIndex === 0 && styles.disabledButton]}
+                                >
+                                    <Ionicons name="arrow-up" size={18} color="white" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => handleMovePanel(gIndex, 'down')}
+                                    disabled={gIndex === groupedMetrics.length - 1}
+                                    style={[styles.orderButton, gIndex === groupedMetrics.length - 1 && styles.disabledButton]}
+                                >
+                                    <Ionicons name="arrow-down" size={18} color="white" />
+                                </TouchableOpacity>
                             </View>
+                        </View>
 
-                            <View style={styles.metricsList}>
-                                {group.metrics.map((metric, mIndex) => (
-                                    <View key={metric.name} style={styles.metricRow}>
-                                        <View style={styles.metricInfo}>
-                                            <Text style={[styles.metricName, isDark && styles.textDark]}>{metric.name.split('.').slice(1).join('.')}</Text>
-                                            <Text style={styles.metricType}>{metric.type}</Text>
-                                        </View>
-                                        <View style={styles.metricActions}>
-                                            <View style={styles.orderControls}>
-                                                <TouchableOpacity
-                                                    onPress={() => handleMoveMetric(gIndex, mIndex, 'up')}
-                                                    disabled={mIndex === 0}
-                                                    style={[styles.orderButtonSmall, mIndex === 0 && styles.disabledButton]}
-                                                >
-                                                    <Ionicons name="chevron-up" size={16} color="white" />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    onPress={() => handleMoveMetric(gIndex, mIndex, 'down')}
-                                                    disabled={mIndex === group.metrics.length - 1}
-                                                    style={[styles.orderButtonSmall, mIndex === group.metrics.length - 1 && styles.disabledButton]}
-                                                >
-                                                    <Ionicons name="chevron-down" size={16} color="white" />
-                                                </TouchableOpacity>
-                                            </View>
+                        <View style={styles.metricsList}>
+                            {group.metrics.map((metric, mIndex) => (
+                                <View key={metric.name} style={styles.metricRow}>
+                                    <View style={styles.metricInfo}>
+                                        <Text style={[styles.metricName, isDark && styles.textDark]}>{metric.name.split('.').slice(1).join('.')}</Text>
+                                        <Text style={styles.metricType}>{metric.type}</Text>
+                                    </View>
+                                    <View style={styles.metricActions}>
+                                        <View style={styles.orderControls}>
                                             <TouchableOpacity
-                                                onPress={() => handleDelete(metric.name)}
-                                                style={styles.deleteButton}
+                                                onPress={() => handleMoveMetric(gIndex, mIndex, 'up')}
+                                                disabled={mIndex === 0}
+                                                style={[styles.orderButtonSmall, mIndex === 0 && styles.disabledButton]}
                                             >
-                                                <Ionicons name="trash-outline" size={18} color="white" />
+                                                <Ionicons name="chevron-up" size={16} color="white" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => handleMoveMetric(gIndex, mIndex, 'down')}
+                                                disabled={mIndex === group.metrics.length - 1}
+                                                style={[styles.orderButtonSmall, mIndex === group.metrics.length - 1 && styles.disabledButton]}
+                                            >
+                                                <Ionicons name="chevron-down" size={16} color="white" />
                                             </TouchableOpacity>
                                         </View>
-                                    </View>
-                                ))}
-                                {group.heartbeat && (
-                                    <View style={styles.metricRow}>
-                                        <View style={styles.metricInfo}>
-                                            <Text style={[styles.metricName, isDark && styles.textDark, { fontStyle: 'italic' }]}>Active (Heartbeat)</Text>
-                                            <Text style={styles.metricType}>bool</Text>
-                                        </View>
                                         <TouchableOpacity
-                                            onPress={() => handleDelete(group.heartbeat!.name)}
+                                            onPress={() => handleDelete(metric.name)}
                                             style={styles.deleteButton}
                                         >
                                             <Ionicons name="trash-outline" size={18} color="white" />
                                         </TouchableOpacity>
                                     </View>
-                                )}
-                            </View>
+                                </View>
+                            ))}
+                            {group.heartbeat && (
+                                <View style={styles.metricRow}>
+                                    <View style={styles.metricInfo}>
+                                        <Text style={[styles.metricName, isDark && styles.textDark, { fontStyle: 'italic' }]}>Active (Heartbeat)</Text>
+                                        <Text style={styles.metricType}>bool</Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => handleDelete(group.heartbeat!.name)}
+                                        style={styles.deleteButton}
+                                    >
+                                        <Ionicons name="trash-outline" size={18} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </View>
-                    ))}
+                    </View>
+                ))}
+            </View>
+        </>
+    );
+
+    if (Platform.OS === 'web') {
+        return (
+            <SafeAreaView style={[styles.container, isDark && styles.bgDark, { flex: undefined, minHeight: '100vh' } as any]}>
+                <View style={styles.scrollContent}>
+                    {managementContent}
                 </View>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={[styles.container, isDark && styles.bgDark]}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                {managementContent}
             </ScrollView>
         </SafeAreaView>
     );
