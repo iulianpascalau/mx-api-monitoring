@@ -172,18 +172,27 @@ func (s *sqliteStorage) GetLatestMetrics(ctx context.Context) ([]common.MetricHi
 
 	for rows.Next() {
 		var h common.MetricHistory
-		var val string
-		var recAt int64
+		var val sql.NullString
+		var recAt sql.NullInt64
 
 		err = rows.Scan(&h.Name, &h.Type, &h.NumAggregation, &h.DisplayOrder, &val, &recAt)
 		if err != nil {
 			return nil, err
 		}
 
+		v := ""
+		if val.Valid {
+			v = val.String
+		}
+		var r int64
+		if recAt.Valid {
+			r = recAt.Int64
+		}
+
 		h.History = []common.MetricValue{
 			{
-				Value:      val,
-				RecordedAt: recAt,
+				Value:      v,
+				RecordedAt: r,
 			},
 		}
 		results = append(results, h)
