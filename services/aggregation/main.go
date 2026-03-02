@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/iulianpascalau/api-monitoring/commonGo"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/config"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/factory"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -26,18 +27,6 @@ const (
 	logFileLifeSpanInMB  = 1024  // 1GB
 	configFile           = "./config.toml"
 	envFile              = "./.env"
-	envServiceKey        = "SERVICE_KEY"
-	envAuthUser          = "AUTH_USER"
-	envAuthPassword      = "AUTH_PASSWORD"
-	envPushoverToken     = "PUSHOVER_TOKEN"
-	envPushoverUserKey   = "PUSHOVER_USERKEY"
-	envSMTPTo            = "SMTP_TO"
-	envSMTPFrom          = "SMTP_FROM"
-	envSMTPPassword      = "SMTP_PASSWORD"
-	envSMTPPort          = "SMTP_PORT"
-	envSMTPHost          = "SMTP_HOST"
-	envTelegramBotToken  = "TELEGRAM_BOT_TOKEN"
-	envTelegramChatId    = "TELEGRAM_CHAT_ID"
 )
 
 // appVersion should be populated at build time using ldflags
@@ -89,18 +78,18 @@ VERSION:
 	}
 
 	envFileContents = map[string]string{
-		envServiceKey:       "",
-		envAuthUser:         "",
-		envAuthPassword:     "",
-		envPushoverToken:    "",
-		envPushoverUserKey:  "",
-		envSMTPTo:           "",
-		envSMTPFrom:         "",
-		envSMTPPassword:     "",
-		envSMTPPort:         "",
-		envSMTPHost:         "",
-		envTelegramBotToken: "",
-		envTelegramChatId:   "",
+		common.EnvServiceKey:       "",
+		common.EnvAuthUser:         "",
+		common.EnvAuthPassword:     "",
+		common.EnvPushoverToken:    "",
+		common.EnvPushoverUserKey:  "",
+		common.EnvSMTPTo:           "",
+		common.EnvSMTPFrom:         "",
+		common.EnvSMTPPassword:     "",
+		common.EnvSMTPPort:         "",
+		common.EnvSMTPHost:         "",
+		common.EnvTelegramBotToken: "",
+		common.EnvTelegramChatId:   "",
 	}
 )
 
@@ -176,10 +165,9 @@ func run(ctx *cli.Context) error {
 
 	components, err := factory.NewComponentsHandler(
 		sqlitePath,
-		envFileContents[envServiceKey],
-		envFileContents[envAuthUser],
-		envFileContents[envAuthPassword],
+		envFileContents,
 		*cfg,
+		log,
 	)
 	if err != nil {
 		return err

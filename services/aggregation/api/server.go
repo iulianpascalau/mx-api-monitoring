@@ -24,17 +24,18 @@ import (
 var log = logger.GetOrCreate("api")
 
 type server struct {
-	router         *gin.Engine
-	httpServer     *http.Server
-	storage        Storage
-	serviceKey     string
-	username       string
-	password       string
-	listenAddr     string
-	staticDir      string
-	jwtSecret      []byte
-	generalHandler func(http.Handler) http.Handler
-	wg             sync.WaitGroup
+	router                    *gin.Engine
+	httpServer                *http.Server
+	storage                   Storage
+	serviceKey                string
+	username                  string
+	password                  string
+	listenAddr                string
+	staticDir                 string
+	jwtSecret                 []byte
+	generalHandler            func(http.Handler) http.Handler
+	wg                        sync.WaitGroup
+	numSecondsToConsiderStale int
 }
 
 // MetricReportPayload represents the incoming JSON body on /api/report
@@ -48,13 +49,14 @@ type MetricReportPayload struct {
 
 // ArgsWebServer defines the web server arguments
 type ArgsWebServer struct {
-	ServiceKeyApi  string
-	AuthUsername   string
-	AuthPassword   string
-	ListenAddress  string
-	StaticDir      string
-	Storage        Storage
-	GeneralHandler func(http.Handler) http.Handler
+	ServiceKeyApi             string
+	AuthUsername              string
+	AuthPassword              string
+	ListenAddress             string
+	StaticDir                 string
+	Storage                   Storage
+	GeneralHandler            func(http.Handler) http.Handler
+	NumSecondsToConsiderStale int
 }
 
 // NewServer initializes the Gin engine and mounts all routes
@@ -82,15 +84,16 @@ func NewServer(args ArgsWebServer) (*server, error) {
 	router.Use(gin.Recovery())
 
 	s := &server{
-		router:         router,
-		storage:        args.Storage,
-		serviceKey:     args.ServiceKeyApi,
-		username:       args.AuthUsername,
-		password:       args.AuthPassword,
-		listenAddr:     args.ListenAddress,
-		staticDir:      args.StaticDir,
-		generalHandler: args.GeneralHandler,
-		jwtSecret:      jwtSecret,
+		router:                    router,
+		storage:                   args.Storage,
+		serviceKey:                args.ServiceKeyApi,
+		username:                  args.AuthUsername,
+		password:                  args.AuthPassword,
+		listenAddr:                args.ListenAddress,
+		staticDir:                 args.StaticDir,
+		generalHandler:            args.GeneralHandler,
+		jwtSecret:                 jwtSecret,
+		numSecondsToConsiderStale: args.NumSecondsToConsiderStale,
 	}
 
 	s.setupRoutes()
@@ -114,6 +117,7 @@ func (s *server) setupRoutes() {
 		protected.GET("/metrics/:name/history", s.handleGetMetricHistory)
 		protected.DELETE("/metrics/:name", s.handleDeleteMetric)
 
+		protected.GET("/config/general", s.handleGetGeneralConfig)
 		protected.GET("/config/panels", s.handleGetPanelsConfigs)
 		protected.POST("/config/panels", s.handleUpdatePanelOrder)
 		protected.POST("/config/metrics/order", s.handleUpdateMetricOrder)
@@ -436,4 +440,10 @@ func (s *server) handleUpdateMetricAlarm(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+func (s *server) handleGetGeneralConfig(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"numSecondsToConsiderStale": s.numSecondsToConsiderStale,
+	})
 }

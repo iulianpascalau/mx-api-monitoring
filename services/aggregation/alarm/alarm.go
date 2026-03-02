@@ -69,7 +69,7 @@ func NewAlarmService(
 }
 
 // Start spawns the background goroutine that periodically checks metrics
-func (as *alarmService) Start(ctx context.Context) {
+func (as *alarmService) Start() {
 	as.mutCancel.Lock()
 	defer as.mutCancel.Unlock()
 
@@ -78,7 +78,7 @@ func (as *alarmService) Start(ctx context.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	as.cancelFunc = cancel
 
 	as.wg.Add(1)

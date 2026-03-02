@@ -113,8 +113,8 @@ func TestAlarmService_StartClose(t *testing.T) {
 	// numCalls should be 0 as we did not start the loop
 	assert.Equal(t, uint32(0), atomic.LoadUint32(&numCalls))
 
-	alarm.Start(context.Background())
-	alarm.Start(context.Background()) // nothing happens as we already started the loop
+	alarm.Start()
+	alarm.Start() // nothing happens as we already started the loop
 	time.Sleep(time.Millisecond * 350)
 
 	// 3 calls
@@ -189,7 +189,7 @@ func TestAlarmService_Notifications(t *testing.T) {
 			1,
 			time.Millisecond*100)
 
-		alarm.Start(context.Background())
+		alarm.Start()
 		defer func() {
 			_ = alarm.Close()
 		}()
@@ -249,7 +249,7 @@ func TestAlarmService_Notifications(t *testing.T) {
 			1,
 			time.Millisecond*100)
 
-		alarm.Start(context.Background())
+		alarm.Start()
 		defer func() {
 			_ = alarm.Close()
 		}()
@@ -305,7 +305,7 @@ func TestAlarmService_Notifications(t *testing.T) {
 			100,
 			time.Millisecond*100)
 
-		alarm.Start(context.Background())
+		alarm.Start()
 		defer func() {
 			_ = alarm.Close()
 		}()

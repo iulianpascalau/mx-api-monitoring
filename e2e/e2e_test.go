@@ -15,6 +15,7 @@ import (
 
 	agentCfg "github.com/iulianpascalau/api-monitoring/services/agent/config"
 	agentFactory "github.com/iulianpascalau/api-monitoring/services/agent/factory"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	aggCfg "github.com/iulianpascalau/api-monitoring/services/aggregation/config"
 	aggFactory "github.com/iulianpascalau/api-monitoring/services/aggregation/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -22,6 +23,14 @@ import (
 )
 
 var log = logger.GetOrCreate("e2e-test")
+
+func createMockEnvFileContents() map[string]string {
+	return map[string]string{
+		common.EnvServiceKey:   "test-service-key",
+		common.EnvAuthUser:     "admin",
+		common.EnvAuthPassword: "password",
+	}
+}
 
 func TestE2EFlow(t *testing.T) {
 	log.Info("======== 1. Start a mock target API that the Agent will monitor")
@@ -44,10 +53,9 @@ func TestE2EFlow(t *testing.T) {
 
 	aggregationHandler, err := aggFactory.NewComponentsHandler(
 		dbPath,
-		"test-service-key",
-		"admin",
-		"password",
+		createMockEnvFileContents(),
 		aggregationConfig,
+		log,
 	)
 	require.NoError(t, err)
 
@@ -226,10 +234,9 @@ func TestE2EFlowWithDataTrim(t *testing.T) {
 
 	aggregationHandler, err := aggFactory.NewComponentsHandler(
 		dbPath,
-		"test-service-key",
-		"admin",
-		"password",
+		createMockEnvFileContents(),
 		aggregationConfig,
+		log,
 	)
 	require.NoError(t, err)
 
@@ -388,16 +395,19 @@ func TestE2EFlowWith2Agents(t *testing.T) {
 
 	log.Info("======== 3. Start Aggregation Service via componentsHandler")
 	aggregationConfig := aggCfg.Config{
-		ListenAddress:    "127.0.0.1:0",
-		RetentionSeconds: 3600,
+		ListenAddress:             "127.0.0.1:0",
+		RetentionSeconds:          3600,
+		NumSecondsToConsiderStale: 300,
+		Alarms: aggCfg.AlarmsConfig{
+			Enabled: false,
+		},
 	}
 
 	aggregationHandler, err := aggFactory.NewComponentsHandler(
 		dbPath,
-		"test-service-key",
-		"admin",
-		"password",
+		createMockEnvFileContents(),
 		aggregationConfig,
+		log,
 	)
 	require.NoError(t, err)
 

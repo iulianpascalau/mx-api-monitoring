@@ -114,6 +114,17 @@ export default function DashboardScreen() {
         enabled: !!token,
     });
 
+    const { data: generalConfig } = useQuery<{ numSecondsToConsiderStale: number }>({
+        queryKey: ['config-general'],
+        queryFn: async () => {
+            const res = await apiClient.get('/config/general');
+            return res.data;
+        },
+        enabled: !!token,
+    });
+
+    const staleThreshold = generalConfig?.numSecondsToConsiderStale || 300;
+
     const groupedMetrics = useMemo(() => {
         if (!data?.metrics) return [];
 
@@ -153,7 +164,7 @@ export default function DashboardScreen() {
         const parts = metric.name.split('.');
         const shortName = parts.slice(1).join('.');
 
-        const isStale = (Date.now() / 1000) - metric.recordedAt > 300;
+        const isStale = (Date.now() / 1000) - metric.recordedAt > staleThreshold;
         const showsGraph = metric.type === 'uint64' && metric.numAggregation > 1;
 
         return (
@@ -220,7 +231,7 @@ export default function DashboardScreen() {
                     let maxRecordedAt = 0;
 
                     if (group.heartbeat) {
-                        const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > 300;
+                        const isStale = (Date.now() / 1000) - group.heartbeat.recordedAt > staleThreshold;
                         isHeartbeatActive = group.heartbeat.value === 'true' && !isStale;
                         maxRecordedAt = group.heartbeat.recordedAt;
                     }
@@ -239,7 +250,7 @@ export default function DashboardScreen() {
                         isLastUpdatedStale = true;
                     } else {
                         const diffSec = Math.floor((Date.now() / 1000) - maxRecordedAt);
-                        if (diffSec > 300) {
+                        if (diffSec > staleThreshold) {
                             lastUpdatedText = 'not updated recently';
                             isLastUpdatedStale = true;
                         } else if (diffSec < 60) {

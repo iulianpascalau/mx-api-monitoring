@@ -6,3 +6,18 @@ type Server interface {
 	Close() error
 	Address() string
 }
+
+// AlarmEngine defines the operations of an entity able to send alarms
+type AlarmEngine interface {
+	Start()
+	Close() error
+	IsInterfaceNil() bool
+}
+
+// PollingHandler defines the operations of an entity able to poll for data
+type PollingHandler interface {
+	StartProcessingLoop() error
+	IsRunning() bool
+	Close() error
+	IsInterfaceNil() bool
+}

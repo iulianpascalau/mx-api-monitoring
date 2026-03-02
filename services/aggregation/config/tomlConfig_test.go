@@ -12,12 +12,43 @@ func TestConfig(t *testing.T) {
 
 	testString := `
 ListenAddress = "0.0.0.0:8080"
-RetentionSeconds =3600
+RetentionSeconds = 3600
+StaticDir = "../../frontend/dist"
+NumSecondsToConsiderStale = 300
+
+[Alarms]
+	Enabled = true
+	PushoverURL = "https://api.pushover.net/1/messages.json"
+	TelegramURL = "https://api.telegram.org"
+	NumRetries = 3
+	SecondsBetweenRetries = 10
+	[Alarms.SystemSelfCheck]
+        Enabled = true
+        DayOfWeek = "every day" # can also be "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" and "Sunday"
+        Hour = 12 # valid interval 0-23
+        Minute = 0 # valid interval 0-59
+        PollingIntervalInSec = 30
 `
 
 	expectedCfg := Config{
-		ListenAddress:    "0.0.0.0:8080",
-		RetentionSeconds: 3600,
+		ListenAddress:             "0.0.0.0:8080",
+		RetentionSeconds:          3600,
+		StaticDir:                 "../../frontend/dist",
+		NumSecondsToConsiderStale: 300,
+		Alarms: AlarmsConfig{
+			Enabled:               true,
+			PushoverURL:           "https://api.pushover.net/1/messages.json",
+			TelegramURL:           "https://api.telegram.org",
+			NumRetries:            3,
+			SecondsBetweenRetries: 10,
+			SystemSelfCheck: SystemSelfCheckConfig{
+				Enabled:              true,
+				DayOfWeek:            "every day",
+				Hour:                 12,
+				Minute:               0,
+				PollingIntervalInSec: 30,
+			},
+		},
 	}
 
 	cfg := Config{}
