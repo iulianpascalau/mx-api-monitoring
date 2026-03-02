@@ -22,3 +22,11 @@ type MetricHistory struct {
 	DisplayOrder   int           `json:"displayOrder"`
 	History        []MetricValue `json:"history"`
 }
+
+// OutputMessage defines the message to be sent to an output notifier
+type OutputMessage struct {
+	Type               MessageOutputType
+	Identifier         string
+	ExecutorName       string
+	ProblemEncountered string
+}
