@@ -77,19 +77,19 @@ VERSION:
 		Value: "",
 	}
 
-	envFileContents = map[string]string{
-		common.EnvServiceKey:       "",
-		common.EnvAuthUser:         "",
-		common.EnvAuthPassword:     "",
-		common.EnvPushoverToken:    "",
-		common.EnvPushoverUserKey:  "",
-		common.EnvSMTPTo:           "",
-		common.EnvSMTPFrom:         "",
-		common.EnvSMTPPassword:     "",
-		common.EnvSMTPPort:         "",
-		common.EnvSMTPHost:         "",
-		common.EnvTelegramBotToken: "",
-		common.EnvTelegramChatId:   "",
+	envFileContents = map[string]*commonGo.EnvValue{
+		common.EnvServiceKey:       {Value: "", Required: true},
+		common.EnvAuthUser:         {Value: "", Required: true},
+		common.EnvAuthPassword:     {Value: "", Required: true},
+		common.EnvPushoverToken:    {Value: "", Required: false},
+		common.EnvPushoverUserKey:  {Value: "", Required: false},
+		common.EnvSMTPTo:           {Value: "", Required: false},
+		common.EnvSMTPFrom:         {Value: "", Required: false},
+		common.EnvSMTPPassword:     {Value: "", Required: false},
+		common.EnvSMTPPort:         {Value: "", Required: false},
+		common.EnvSMTPHost:         {Value: "", Required: false},
+		common.EnvTelegramBotToken: {Value: "", Required: false},
+		common.EnvTelegramChatId:   {Value: "", Required: false},
 	}
 )
 

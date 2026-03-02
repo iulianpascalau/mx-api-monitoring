@@ -39,7 +39,7 @@ func AttachFileLogger(
 }
 
 // ReadEnvFile will read the file contents in the provided map
-func ReadEnvFile(envFile string, m map[string]string) error {
+func ReadEnvFile(envFile string, m map[string]*EnvValue) error {
 	err := godotenv.Load(envFile)
 	if err != nil {
 		return err
@@ -47,11 +47,11 @@ func ReadEnvFile(envFile string, m map[string]string) error {
 
 	for k := range m {
 		val := os.Getenv(k)
-		if len(val) == 0 {
+		if len(val) == 0 && m[k].Required {
 			return fmt.Errorf("%s is not set in the .env file", k)
 		}
 
-		m[k] = val
+		m[k].Value = val
 	}
 
 	return nil

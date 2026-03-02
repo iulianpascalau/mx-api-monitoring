@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iulianpascalau/api-monitoring/commonGo"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/config"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/stretchr/testify/assert"
 )
 
-func createMockEnvFileContents() map[string]string {
-	return map[string]string{
-		common.EnvServiceKey:       "service-key",
-		common.EnvAuthUser:         "auth-user",
-		common.EnvAuthPassword:     "auth-pass",
-		common.EnvPushoverToken:    "pushover-token",
-		common.EnvPushoverUserKey:  "pushover-userkey",
-		common.EnvSMTPTo:           "smtp-to",
-		common.EnvSMTPFrom:         "smtp-from",
-		common.EnvSMTPPassword:     "smtp-pass",
-		common.EnvSMTPPort:         "587",
-		common.EnvSMTPHost:         "smtp-host",
-		common.EnvTelegramBotToken: "telegram-bot",
-		common.EnvTelegramChatId:   "telegram-chatid",
+func createMockEnvFileContents() map[string]*commonGo.EnvValue {
+	return map[string]*commonGo.EnvValue{
+		common.EnvServiceKey:       {Value: "service-key"},
+		common.EnvAuthUser:         {Value: "auth-user"},
+		common.EnvAuthPassword:     {Value: "auth-pass"},
+		common.EnvPushoverToken:    {Value: "pushover-token"},
+		common.EnvPushoverUserKey:  {Value: "pushover-userkey"},
+		common.EnvSMTPTo:           {Value: "smtp-to"},
+		common.EnvSMTPFrom:         {Value: "smtp-from"},
+		common.EnvSMTPPassword:     {Value: "smtp-pass"},
+		common.EnvSMTPPort:         {Value: "587"},
+		common.EnvSMTPHost:         {Value: "smtp-host"},
+		common.EnvTelegramBotToken: {Value: "telegram-bot"},
+		common.EnvTelegramChatId:   {Value: "telegram-chatid"},
 	}
 }
 
@@ -36,8 +37,8 @@ func getMockConfig() config.Config {
 			Enabled:               true,
 			PushoverURL:           "https://api.pushover.net/1/messages.json",
 			TelegramURL:           "https://api.telegram.org",
-			NumRetries:            3,
-			SecondsBetweenRetries: 10,
+			NumRetries:            1,
+			SecondsBetweenRetries: 1,
 			SystemSelfCheck: config.SystemSelfCheckConfig{
 				Enabled:              true,
 				DayOfWeek:            "every day",

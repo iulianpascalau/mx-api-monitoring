@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/iulianpascalau/api-monitoring/commonGo"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/alarm"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/alarm/executors"
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/alarm/notifiers"
@@ -35,7 +36,7 @@ type componentsHandler struct {
 // NewComponentsHandler creates a new components handler
 func NewComponentsHandler(
 	sqlitePath string,
-	envFileContents map[string]string,
+	envFileContents map[string]*commonGo.EnvValue,
 	cfg config.Config,
 	notifyLogger logger.Logger,
 	appVersion string,
@@ -46,9 +47,9 @@ func NewComponentsHandler(
 	}
 
 	serverArgs := api.ArgsWebServer{
-		ServiceKeyApi:             envFileContents[common.EnvServiceKey],
-		AuthUsername:              envFileContents[common.EnvAuthUser],
-		AuthPassword:              envFileContents[common.EnvAuthPassword],
+		ServiceKeyApi:             envFileContents[common.EnvServiceKey].Value,
+		AuthUsername:              envFileContents[common.EnvAuthUser].Value,
+		AuthPassword:              envFileContents[common.EnvAuthPassword].Value,
 		ListenAddress:             cfg.ListenAddress,
 		StaticDir:                 cfg.StaticDir,
 		Storage:                   store,
@@ -76,7 +77,7 @@ func NewComponentsHandler(
 }
 
 func (ch *componentsHandler) addAlarmComponents(
-	envFileContents map[string]string,
+	envFileContents map[string]*commonGo.EnvValue,
 	cfg config.Config,
 	notifyLogger logger.Logger,
 	store alarm.Storage,
@@ -155,7 +156,7 @@ func (ch *componentsHandler) addSelfCheckAlarmComponents(cfg config.Config) erro
 	return err
 }
 
-func buildNotifiers(notifyLogger logger.Logger, envFileContents map[string]string, cfg config.Config) ([]executors.Notifier, error) {
+func buildNotifiers(notifyLogger logger.Logger, envFileContents map[string]*commonGo.EnvValue, cfg config.Config) ([]executors.Notifier, error) {
 	notifiersCollection := make([]executors.Notifier, 0, 10)
 
 	if !check.IfNil(notifyLogger) {
@@ -164,8 +165,8 @@ func buildNotifiers(notifyLogger logger.Logger, envFileContents map[string]strin
 		log.Debug("enabled log notifier")
 	}
 
-	pushoverToken := envFileContents[common.EnvPushoverToken]
-	pushoverUserkey := envFileContents[common.EnvPushoverUserKey]
+	pushoverToken := envFileContents[common.EnvPushoverToken].Value
+	pushoverUserkey := envFileContents[common.EnvPushoverUserKey].Value
 	if len(pushoverToken) > 0 && len(pushoverUserkey) > 0 {
 		notifier := notifiers.NewPushoverNotifier(cfg.Alarms.PushoverURL, pushoverToken, pushoverUserkey)
 		notifiersCollection = append(notifiersCollection, notifier)
@@ -173,14 +174,14 @@ func buildNotifiers(notifyLogger logger.Logger, envFileContents map[string]strin
 	}
 
 	smtpArgs := notifiers.ArgsSmtpNotifier{
-		To:       envFileContents[common.EnvSMTPTo],
+		To:       envFileContents[common.EnvSMTPTo].Value,
 		SmtpPort: 0,
-		SmtpHost: envFileContents[common.EnvSMTPHost],
-		From:     envFileContents[common.EnvSMTPFrom],
-		Password: envFileContents[common.EnvSMTPPassword],
+		SmtpHost: envFileContents[common.EnvSMTPHost].Value,
+		From:     envFileContents[common.EnvSMTPFrom].Value,
+		Password: envFileContents[common.EnvSMTPPassword].Value,
 	}
 	var err error
-	smtpArgs.SmtpPort, err = strconv.Atoi(envFileContents[common.EnvSMTPPort])
+	smtpArgs.SmtpPort, err = strconv.Atoi(envFileContents[common.EnvSMTPPort].Value)
 	if err != nil {
 		return nil, fmt.Errorf("%w while trying to convert the .env definition SMTP_PORT value to an int", err)
 	}
@@ -197,8 +198,8 @@ func buildNotifiers(notifyLogger logger.Logger, envFileContents map[string]strin
 
 	telegramBotToken := envFileContents[common.EnvTelegramBotToken]
 	telegramChatId := envFileContents[common.EnvTelegramChatId]
-	if len(telegramBotToken) > 0 && len(telegramChatId) > 0 {
-		notifier := notifiers.NewTelegramNotifier(cfg.Alarms.TelegramURL, telegramBotToken, telegramChatId)
+	if len(telegramBotToken.Value) > 0 && len(telegramChatId.Value) > 0 {
+		notifier := notifiers.NewTelegramNotifier(cfg.Alarms.TelegramURL, telegramBotToken.Value, telegramChatId.Value)
 		notifiersCollection = append(notifiersCollection, notifier)
 		log.Debug("enabled telegram notifier")
 	}

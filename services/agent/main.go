@@ -74,8 +74,8 @@ VERSION:
 		Value: "",
 	}
 
-	envFileContents = map[string]string{
-		envServiceKey: "",
+	envFileContents = map[string]*commonGo.EnvValue{
+		envServiceKey: {Value: "", Required: true},
 	}
 )
 
@@ -147,7 +147,7 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	serviceKey := envFileContents[envServiceKey]
+	serviceKey := envFileContents[envServiceKey].Value
 	components, err := factory.NewComponentsHandler(serviceKey, *cfg)
 	if err != nil {
 		return err
