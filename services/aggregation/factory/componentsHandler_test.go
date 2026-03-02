@@ -57,6 +57,7 @@ func TestNewComponentsHandler(t *testing.T) {
 		createMockEnvFileContents(),
 		getMockConfig(),
 		log,
+		"test-version",
 	)
 
 	assert.NotNil(t, handler)
@@ -74,6 +75,7 @@ func TestComponentsHandlerMethods(t *testing.T) {
 			createMockEnvFileContents(),
 			getMockConfig(),
 			log,
+			"test-version",
 		)
 
 		handler.Start()
@@ -103,6 +105,7 @@ func TestComponentsHandlerMethods(t *testing.T) {
 			createMockEnvFileContents(),
 			cfg,
 			log,
+			"test-version",
 		)
 
 		handler.Start()
@@ -128,6 +131,7 @@ func TestComponentsHandlerMethods(t *testing.T) {
 			createMockEnvFileContents(),
 			cfg,
 			log,
+			"test-version",
 		)
 
 		handler.Start()

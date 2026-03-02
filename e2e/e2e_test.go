@@ -56,6 +56,7 @@ func TestE2EFlow(t *testing.T) {
 		createMockEnvFileContents(),
 		aggregationConfig,
 		log,
+		"e2e-version",
 	)
 	require.NoError(t, err)
 
@@ -237,6 +238,7 @@ func TestE2EFlowWithDataTrim(t *testing.T) {
 		createMockEnvFileContents(),
 		aggregationConfig,
 		log,
+		"e2e-version",
 	)
 	require.NoError(t, err)
 
@@ -408,6 +410,7 @@ func TestE2EFlowWith2Agents(t *testing.T) {
 		createMockEnvFileContents(),
 		aggregationConfig,
 		log,
+		"e2e-version",
 	)
 	require.NoError(t, err)
 

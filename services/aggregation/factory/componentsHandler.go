@@ -38,6 +38,7 @@ func NewComponentsHandler(
 	envFileContents map[string]string,
 	cfg config.Config,
 	notifyLogger logger.Logger,
+	appVersion string,
 ) (*componentsHandler, error) {
 	store, err := storage.NewSQLiteStorage(sqlitePath, cfg.RetentionSeconds)
 	if err != nil {
@@ -53,6 +54,7 @@ func NewComponentsHandler(
 		Storage:                   store,
 		GeneralHandler:            api.CORSMiddleware,
 		NumSecondsToConsiderStale: cfg.NumSecondsToConsiderStale,
+		AppVersion:                appVersion,
 	}
 
 	server, err := api.NewServer(serverArgs)

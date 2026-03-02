@@ -168,6 +168,7 @@ func run(ctx *cli.Context) error {
 		envFileContents,
 		*cfg,
 		log,
+		appVersion,
 	)
 	if err != nil {
 		return err

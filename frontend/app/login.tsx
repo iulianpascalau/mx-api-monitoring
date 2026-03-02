@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiClient, API_BASE_URL } from '../lib/api';
 import { useAuth } from './_layout';
@@ -11,6 +11,7 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [version, setVersion] = useState('');
     const router = useRouter();
     const { signIn, theme, toggleTheme } = useAuth();
     const isDark = theme === 'dark';
@@ -35,6 +36,12 @@ export default function LoginScreen() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        apiClient.get('/app-info')
+            .then(res => setVersion(res.data.version))
+            .catch(err => console.error('Failed to fetch version:', err));
+    }, []);
 
     return (
         <View style={[styles.container, isDark && styles.containerDark, Platform.OS === 'web' && { flex: undefined, minHeight: '100vh' } as any]}>
@@ -92,6 +99,15 @@ export default function LoginScreen() {
                         <Text style={styles.buttonText}>Sign In</Text>
                     )}
                 </TouchableOpacity>
+
+                <View style={{ marginTop: 24, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 12, color: isDark ? '#9ca3af' : '#6b7280' }}>
+                        Backend v{version} | <Text
+                            style={{ textDecorationLine: 'underline' }}
+                            onPress={() => Linking.openURL('https://github.com/iulianpascalau/api-monitoring')}
+                        >Solution</Text>
+                    </Text>
+                </View>
             </View>
         </View>
     );

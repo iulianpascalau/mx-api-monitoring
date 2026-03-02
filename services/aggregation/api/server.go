@@ -36,6 +36,7 @@ type server struct {
 	generalHandler            func(http.Handler) http.Handler
 	wg                        sync.WaitGroup
 	numSecondsToConsiderStale int
+	appVersion                string
 }
 
 // MetricReportPayload represents the incoming JSON body on /api/report
@@ -57,6 +58,7 @@ type ArgsWebServer struct {
 	Storage                   Storage
 	GeneralHandler            func(http.Handler) http.Handler
 	NumSecondsToConsiderStale int
+	AppVersion                string
 }
 
 // NewServer initializes the Gin engine and mounts all routes
@@ -94,6 +96,7 @@ func NewServer(args ArgsWebServer) (*server, error) {
 		generalHandler:            args.GeneralHandler,
 		jwtSecret:                 jwtSecret,
 		numSecondsToConsiderStale: args.NumSecondsToConsiderStale,
+		appVersion:                args.AppVersion,
 	}
 
 	s.setupRoutes()
@@ -105,6 +108,9 @@ func (s *server) setupRoutes() {
 
 	// Agent reporting endpoint
 	api.POST("/report", s.authAPIKey(), s.handleReport)
+
+	// Public app info
+	api.GET("/app-info", s.handleAppInfo)
 
 	// Frontend authentication
 	api.POST("/auth/login", s.handleLogin)
@@ -445,5 +451,11 @@ func (s *server) handleUpdateMetricAlarm(c *gin.Context) {
 func (s *server) handleGetGeneralConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"numSecondsToConsiderStale": s.numSecondsToConsiderStale,
+	})
+}
+
+func (s *server) handleAppInfo(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"version": s.appVersion,
 	})
 }
