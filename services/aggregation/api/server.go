@@ -280,7 +280,7 @@ func (s *server) handleReport(c *gin.Context) {
 	recordedAt := time.Now().Unix()
 	ctx := c.Request.Context()
 
-	log.Debug("received report", "sender", c.Request.RemoteAddr, "num metrics", len(payload.Metrics))
+	log.Debug("received report", "sender", c.ClientIP(), "num metrics", len(payload.Metrics))
 
 	// In real-world, we could parallelize or bulk this, but for SQLite WAL, serial Tx is fine.
 	for name, m := range payload.Metrics {
