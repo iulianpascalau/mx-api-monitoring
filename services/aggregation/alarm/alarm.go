@@ -125,6 +125,8 @@ func (as *alarmService) checkMetrics(ctx context.Context) {
 		return
 	}
 
+	log.Debug("alarm service fetched latest metrics to be checked", "num metrics", len(metrics))
+
 	metricsToNotify := make([]common.MetricHistory, 0)
 	for _, m := range metrics {
 		if !as.shouldNotify(m) {
