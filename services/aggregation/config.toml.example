@@ -5,6 +5,7 @@ NumSecondsToConsiderStale = 300
 
 [Alarms]
 	Enabled = true
+	NumSecondsLoopTimeAlarm = 60
 	PushoverURL = "https://api.pushover.net/1/messages.json"
 	TelegramURL = "https://api.telegram.org"
 	NumRetries = 3

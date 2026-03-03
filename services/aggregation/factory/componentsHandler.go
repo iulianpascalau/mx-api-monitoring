@@ -20,7 +20,6 @@ import (
 )
 
 const unknownWeekDay = -2
-const loopTimeAlarmService = time.Second * 60
 
 var log = logger.GetOrCreate("factory")
 
@@ -108,6 +107,11 @@ func (ch *componentsHandler) addAlarmComponents(
 		return err
 	}
 
+	if cfg.Alarms.NumSecondsLoopTimeAlarm < 1 {
+		return fmt.Errorf("invalid value for NumSecondsLoopTimeAlarm: %v", cfg.Alarms.NumSecondsLoopTimeAlarm)
+	}
+
+	loopTimeAlarmService := time.Duration(cfg.Alarms.NumSecondsLoopTimeAlarm) * time.Second
 	ch.alarmService, err = alarm.NewAlarmService(
 		store,
 		notifiersHandler,

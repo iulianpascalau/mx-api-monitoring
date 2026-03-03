@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,7 +20,9 @@ import (
 	"github.com/iulianpascalau/api-monitoring/services/aggregation/common"
 	aggCfg "github.com/iulianpascalau/api-monitoring/services/aggregation/config"
 	aggFactory "github.com/iulianpascalau/api-monitoring/services/aggregation/factory"
+	"github.com/iulianpascalau/api-monitoring/services/aggregation/testsCommon"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,9 +30,18 @@ var log = logger.GetOrCreate("e2e-test")
 
 func createMockEnvFileContents() map[string]*commonGo.EnvValue {
 	return map[string]*commonGo.EnvValue{
-		common.EnvServiceKey:   {Value: "test-service-key", Required: true},
-		common.EnvAuthUser:     {Value: "admin", Required: true},
-		common.EnvAuthPassword: {Value: "password", Required: true},
+		common.EnvServiceKey:       {Value: "test-service-key", Required: true},
+		common.EnvAuthUser:         {Value: "admin", Required: true},
+		common.EnvAuthPassword:     {Value: "password", Required: true},
+		common.EnvPushoverToken:    {Value: "", Required: false},
+		common.EnvPushoverUserKey:  {Value: "", Required: false},
+		common.EnvSMTPTo:           {Value: "", Required: false},
+		common.EnvSMTPFrom:         {Value: "", Required: false},
+		common.EnvSMTPPassword:     {Value: "", Required: false},
+		common.EnvSMTPPort:         {Value: "0", Required: false},
+		common.EnvSMTPHost:         {Value: "", Required: false},
+		common.EnvTelegramBotToken: {Value: "", Required: false},
+		common.EnvTelegramChatId:   {Value: "", Required: false},
 	}
 }
 
@@ -593,4 +605,105 @@ func TestE2EFlowWith2Agents(t *testing.T) {
 	require.Equal(t, "mock-api2", historyData.Name)
 	require.NotEmpty(t, historyData.History)
 	require.Equal(t, "37", historyData.History[0].Value)
+}
+
+func TestE2EFlowForAlarms(t *testing.T) {
+	log.Info("======== 1. Start a mock target API that the Agent will monitor")
+	mockAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// We'll mimic a JSON payload where `status` is what we want
+		_, _ = w.Write([]byte(`{"status": "ok", "latency": 12}`))
+	}))
+	defer mockAPI.Close()
+
+	log.Info("======== 2. Prepare SQLite path for Aggregation")
+	tempDir := t.TempDir()
+	dbPath := filepath.Join(tempDir, "e2e_sqlite.db")
+
+	log.Info("======== 3. Start Aggregation Service via componentsHandler")
+	aggregationConfig := aggCfg.Config{
+		ListenAddress:             "127.0.0.1:0",
+		RetentionSeconds:          3600,
+		NumSecondsToConsiderStale: 2,
+		Alarms: aggCfg.AlarmsConfig{
+			Enabled:                 true,
+			NumSecondsLoopTimeAlarm: 2,
+			PushoverURL:             "",
+			TelegramURL:             "",
+			NumRetries:              1,
+			SecondsBetweenRetries:   1,
+			SystemSelfCheck: aggCfg.SystemSelfCheckConfig{
+				Enabled: false,
+			},
+		},
+	}
+
+	receivedMessages := make(chan string, 100)
+	localLogNotifier := &testsCommon.LoggerStub{
+		LogHandler: func(logLevel logger.LogLevel, message string, args ...interface{}) {
+			receivedMessages <- message
+		},
+	}
+
+	aggregationHandler, err := aggFactory.NewComponentsHandler(
+		dbPath,
+		createMockEnvFileContents(),
+		aggregationConfig,
+		localLogNotifier,
+		"e2e-version",
+	)
+	require.NoError(t, err)
+
+	aggregationHandler.Start()
+
+	_, port, err := net.SplitHostPort(aggregationHandler.GetServer().Address())
+	require.NoError(t, err)
+	aggURL := fmt.Sprintf("http://127.0.0.1:%s", port)
+
+	log.Info("======== 3.1. Wait a moment for server to start")
+	time.Sleep(100 * time.Millisecond)
+
+	log.Info("======== 4. Start Agent Service via componentsHandler")
+	agentConfig := agentCfg.Config{
+		Name:                   "e2e-agent",
+		QueryIntervalInSeconds: 1,
+		ReportEndpoint:         aggURL + "/api/report",
+		ReportTimeoutInSeconds: 5,
+		Endpoints: []agentCfg.EndpointConfig{
+			{
+				Name:           "mock-api",
+				URL:            mockAPI.URL,
+				Value:          "status",
+				Type:           "string",
+				NumAggregation: 1,
+			},
+		},
+	}
+
+	agentHandler, err := agentFactory.NewComponentsHandler(
+		"test-service-key",
+		agentConfig,
+	)
+	require.NoError(t, err)
+
+	agentHandler.Start()
+
+	log.Info("======== 5. Wait for agent to poll the mockAPI and report to Aggregation")
+	// Agent queries every 1s, we'll wait about 2.5s to ensure at least 2 queries
+	time.Sleep(2500 * time.Millisecond)
+
+	log.Info("======== 6. Turn on the alarm setting on the metric")
+	_ = aggregationHandler.GetStore().UpdateMetricAlarm(context.Background(), "e2e-agent.Active", true)
+
+	log.Info("======== 7. Stop the agent to raise an alarm")
+	agentHandler.Close()
+	time.Sleep(5000 * time.Millisecond)
+
+	log.Info("======== 8. Stop the aggregation service and check received notifications")
+	aggregationHandler.Close()
+
+	require.Equal(t, 3, len(receivedMessages))
+	assert.Contains(t, <-receivedMessages, "Application started on")
+	assert.Contains(t, <-receivedMessages, "e2e-agent.Active -> Host appears offline called by API monitoring app")
+	assert.Contains(t, <-receivedMessages, "Application closing called by API monitoring app")
 }

@@ -18,12 +18,13 @@ type Config struct {
 
 // AlarmsConfig defines the configuration for alarms
 type AlarmsConfig struct {
-	Enabled               bool                  `toml:"Enabled"`
-	PushoverURL           string                `toml:"PushoverURL"`
-	TelegramURL           string                `toml:"TelegramURL"`
-	NumRetries            uint32                `toml:"NumRetries"`
-	SecondsBetweenRetries int                   `toml:"SecondsBetweenRetries"`
-	SystemSelfCheck       SystemSelfCheckConfig `toml:"SystemSelfCheck"`
+	Enabled                 bool                  `toml:"Enabled"`
+	NumSecondsLoopTimeAlarm int                   `toml:"NumSecondsLoopTimeAlarm"`
+	PushoverURL             string                `toml:"PushoverURL"`
+	TelegramURL             string                `toml:"TelegramURL"`
+	NumRetries              uint32                `toml:"NumRetries"`
+	SecondsBetweenRetries   int                   `toml:"SecondsBetweenRetries"`
+	SystemSelfCheck         SystemSelfCheckConfig `toml:"SystemSelfCheck"`
 }
 
 // SystemSelfCheckConfig defines the configuration for the self check system

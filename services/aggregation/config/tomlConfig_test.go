@@ -18,6 +18,7 @@ NumSecondsToConsiderStale = 300
 
 [Alarms]
 	Enabled = true
+	NumSecondsLoopTimeAlarm = 60
 	PushoverURL = "https://api.pushover.net/1/messages.json"
 	TelegramURL = "https://api.telegram.org"
 	NumRetries = 3
@@ -36,11 +37,12 @@ NumSecondsToConsiderStale = 300
 		StaticDir:                 "../../frontend/dist",
 		NumSecondsToConsiderStale: 300,
 		Alarms: AlarmsConfig{
-			Enabled:               true,
-			PushoverURL:           "https://api.pushover.net/1/messages.json",
-			TelegramURL:           "https://api.telegram.org",
-			NumRetries:            3,
-			SecondsBetweenRetries: 10,
+			Enabled:                 true,
+			NumSecondsLoopTimeAlarm: 60,
+			PushoverURL:             "https://api.pushover.net/1/messages.json",
+			TelegramURL:             "https://api.telegram.org",
+			NumRetries:              3,
+			SecondsBetweenRetries:   10,
 			SystemSelfCheck: SystemSelfCheckConfig{
 				Enabled:              true,
 				DayOfWeek:            "every day",

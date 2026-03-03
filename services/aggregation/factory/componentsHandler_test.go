@@ -34,11 +34,12 @@ func getMockConfig() config.Config {
 		RetentionSeconds:          3600,
 		NumSecondsToConsiderStale: 300,
 		Alarms: config.AlarmsConfig{
-			Enabled:               true,
-			PushoverURL:           "https://api.pushover.net/1/messages.json",
-			TelegramURL:           "https://api.telegram.org",
-			NumRetries:            1,
-			SecondsBetweenRetries: 1,
+			Enabled:                 true,
+			NumSecondsLoopTimeAlarm: 60,
+			PushoverURL:             "https://api.pushover.net/1/messages.json",
+			TelegramURL:             "https://api.telegram.org",
+			NumRetries:              1,
+			SecondsBetweenRetries:   1,
 			SystemSelfCheck: config.SystemSelfCheckConfig{
 				Enabled:              true,
 				DayOfWeek:            "every day",
